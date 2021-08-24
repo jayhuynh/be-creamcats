@@ -1,0 +1,28 @@
+version: "3.7"
+
+services: 
+  app:
+    build: .
+    command: npm run dev
+    restart: unless-stopped
+    ports:
+      - "6400:3000"
+    depends_on:
+      - db
+    volumes: 
+      - .:/app
+
+  db:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    ports:
+      - "6401:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - creamcats-db:/var/lib/postgresql/data
+
+volumes:
+  creamcats-db: {}
