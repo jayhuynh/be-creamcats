@@ -7,3 +7,7 @@
 ```
 $ docker-compose up
 ```
+
+## Workflow
+
+* Please follow [Github flow](https://guides.github.com/introduction/flow/)
