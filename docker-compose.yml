@@ -6,7 +6,7 @@ services:
     command: npm run dev
     restart: unless-stopped
     ports:
-      - "6400:3000"
+      - "${APP_HOST_PORT}:${APP_CONT_PORT}"
     depends_on:
       - db
     volumes:
@@ -16,11 +16,11 @@ services:
     image: postgres:13-alpine
     restart: unless-stopped
     ports:
-      - "6401:5432"
+      - "${DB_HOST_PORT}:${DB_CONT_PORT}"
     environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - creamcats-db:/var/lib/postgresql/data
 
