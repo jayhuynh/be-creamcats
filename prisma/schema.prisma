@@ -14,3 +14,51 @@ model User {
   fullname String?
   password String
 }
+
+model Org {
+  id     Int     @id @default(autoincrement())
+  name   String
+  desc   String
+  addr   String?
+  email  String?
+  phone  String?
+  events Event[]
+}
+
+model Event {
+  id        Int         @id @default(autoincrement())
+  name      String
+  desc      String
+  location  String
+  startTime DateTime
+  endTime   DateTime
+  gallery   String[]
+  status    EventStatus
+  Org       Org         @relation(fields: [orgId], references: [id])
+  orgId     Int
+  positions Position[]
+}
+
+model Position {
+  id           Int           @id @default(autoincrement())
+  name         String
+  desc         String
+  requirements String
+  typesOfWork  String[]
+  timeCreated  DateTime      @updatedAt
+  thumbnail    String
+  Event        Event         @relation(fields: [eventId], references: [id])
+  eventId      Int
+  applications Application[]
+}
+
+model Application {
+  id         Int      @id @default(autoincrement())
+  Position   Position @relation(fields: [positionId], references: [id])
+  positionId Int
+}
+
+enum EventStatus {
+  PAST
+  ONGOING
+}
