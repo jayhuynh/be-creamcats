@@ -47,6 +47,7 @@
       }
     ]
   },
+  "object-shorthand": "never",
   "settings": {
     "import/resolver": {
       "node": {

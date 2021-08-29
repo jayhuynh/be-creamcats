@@ -1,12 +1,12 @@
 import express from "express";
 
 import dummies from "./components/dummies";
-import logger from "./utils/logger";
+import utils from "./utils";
 
 const app = express();
 
 // Logging
-app.use(logger);
+app.use(utils.logger);
 
 // Json parsing middleware
 app.use(express.json());
