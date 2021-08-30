@@ -1,7 +1,8 @@
 import express from "express";
 
-import dummies from "./components/dummies";
 import logger from "./utils/logger";
+import dummies from "./components/dummies";
+import auth from "./components/auth";
 
 const app = express();
 
@@ -11,7 +12,10 @@ app.use(logger);
 // Json parsing middleware
 app.use(express.json());
 
+// Auth
+app.use("/auth", auth.router);
+
 // Dummies
-app.use("/dummies", dummies.controllers.getDummies);
+app.use("/dummies", dummies.router);
 
 export default app;

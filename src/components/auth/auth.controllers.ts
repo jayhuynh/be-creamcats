@@ -1,14 +1,10 @@
-import { Router } from "express";
-import { PrismaClient } from "@prisma/client";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
-import auth from "../utils/auth";
+import { NextFunction, Request, Response } from "express";
 
-const router = Router();
+import prisma from "../../utils/prisma";
 
-const prisma = new PrismaClient();
-
-router.post("/login", async (req, res) => {
+const login = async (req: Request, res: Response) => {
   const { username, password } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -35,9 +31,9 @@ router.post("/login", async (req, res) => {
       .status(500)
       .json({ success: false, error: "Internal Server Error" });
   }
-});
+};
 
-router.post("/register", async (req, res) => {
+const register = async (req: Request, res: Response) => {
   const { email, username, password } = req.body;
 
   console.log(email, username, password);
@@ -67,11 +63,9 @@ router.post("/register", async (req, res) => {
   const token = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET);
 
   return res.status(200).json({ success: true, accessToken: token });
-});
+};
 
-router.post("/username", auth, (req, res) => res.send(req.user.username));
-
-router.post("/username/availability", async (req, res) => {
+const checkAvaiableUsername = async (req: Request, res: Response) => {
   const { username } = req.body;
 
   const result = await prisma.user.findUnique({
@@ -89,6 +83,66 @@ router.post("/username/availability", async (req, res) => {
     success: true,
     message: `Username ${username} is available!`,
   });
-});
+};
 
-export { router as default };
+const auth = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.headers.authorization) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Missing Authorization Header" });
+  }
+
+  const authHeader = req.headers.authorization;
+  const authMethod = authHeader.split(" ")[0];
+  const token = authHeader.split(" ")[1];
+
+  if (!authMethod || !token) {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid Authorization Header" });
+  }
+  if (authMethod !== "Bearer") {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid Auth Method" });
+  }
+
+  let tokenBody;
+
+  try {
+    tokenBody = jwt.verify(token, "secret");
+  } catch {
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid Token", invalidate: true });
+  }
+
+  console.log(tokenBody);
+
+  if (!tokenBody.userId) {
+    return res.status(400).json({ success: false, error: "Invalid Token" });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: tokenBody.userId },
+  });
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ success: false, error: "User does not exist" });
+  }
+
+  req.body.user = user;
+
+  next();
+
+  return null;
+};
+
+export default {
+  login,
+  register,
+  checkAvaiableUsername,
+  auth,
+};

@@ -2,11 +2,10 @@ import express, { Request, Response, NextFunction } from "express";
 
 import consola, { Consola } from "consola";
 import cors from "cors";
-// import * as bodyParser from "body-parser";
 
 import * as dotENV from "dotenv";
 
-import router from "./routes/auth";
+import auth from "./components/auth";
 
 dotENV.config();
 const { PORT } = process.env;
@@ -54,7 +53,7 @@ class Server {
       res.send("App");
     });
 
-    this.app.use("/api/v1/auth", router);
+    this.app.use("/api/v1/auth", auth.router);
   }
 }
 
