@@ -63,6 +63,7 @@ function genApplication(users: User[], positions: Position[]) {
   return {
     userId: user.id,
     positionId: position.id,
+    notes: faker.lorem.sentence(),
   };
 }
 
