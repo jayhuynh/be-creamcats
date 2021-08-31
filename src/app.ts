@@ -16,6 +16,6 @@ app.use(utils.logger);
 app.use(express.json());
 
 // Dummies
-app.use("/dummies", dummies.controllers.getDummies);
+app.use("/dummies", dummies.router);
 
 export default app;
