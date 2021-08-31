@@ -54,14 +54,14 @@ model Position {
 }
 
 model Application {
-  id         Int      @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   Position   Position @relation(fields: [positionId], references: [id])
   positionId Int
   User       User     @relation(fields: [userId], references: [id])
   userId     Int
   notes      String
 
-  @@id([userId, positionId])
+  @@unique([userId, positionId], name: "unique_userId_positionId_pair")
 }
 
 enum EventStatus {

@@ -57,9 +57,24 @@ function genPosition() {
   };
 }
 
-function genApplication(users: User[], positions: Position[]) {
+async function genApplication(users: User[], positions: Position[]) {
   const user = faker.random.arrayElement(users);
   const position = faker.random.arrayElement(positions);
+
+  const application = await prisma.application.findUnique({
+    where: {
+      unique_userId_positionId_pair: {
+        userId: user.id,
+        positionId: position.id,
+      },
+    },
+  });
+
+  console.log(`${application}`);
+  console.log(`${JSON.stringify(application)}`);
+
+  if (application) return null;
+
   return {
     userId: user.id,
     positionId: position.id,
@@ -78,10 +93,14 @@ async function main() {
 
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
+
   for (let i = 0; i < 30; i++) {
+    const application = await genApplication(users, positions);
+    if (!application) continue;
+
     try {
       await prisma.application.create({
-        data: genApplication(users, positions),
+        data: application,
       });
     } catch (e) {
       console.error(`Error:: ${e}. Seeder will continue to run...`);
