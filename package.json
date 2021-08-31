@@ -62,6 +62,7 @@
     "app-root-path": "^3.0.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
     "faker": "^5.5.3",
     "opener": "^1.5.2",
     "pino-http": "^5.7.0",
