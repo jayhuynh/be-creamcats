@@ -1,19 +1,29 @@
-import { Request, Response, NextFunction } from "express";
+import express from "express";
 import ApiError from "./error";
 
-const notFoundHandler = (_req: Request, _res: Response, next: NextFunction) => {
+const notFoundHandler = (
+  _req: express.Request,
+  _res: express.Response,
+  next: express.NextFunction
+) => {
   const err = new ApiError("Route not found", 404);
   next(err);
 };
 
 const apiErrorHandler = (
-  err: ApiError,
-  _req: Request,
-  res: Response,
-  _next: NextFunction
+  err: Error,
+  _req: express.Request,
+  res: express.Response,
+  _next: express.NextFunction
 ) => {
-  res.status(err.statusCode).json({
-    message: err.message,
+  let statusCode = 500;
+  let message = "Fatal error...";
+  if (err instanceof ApiError) {
+    statusCode = err.statusCode;
+    message = err.message;
+  }
+  res.status(statusCode).json({
+    message: message,
   });
 };
 
