@@ -14,6 +14,24 @@ $ docker-compose up
 $ npm run db-reset
 ```
 
+## API Doc
+
+* View the API doc
+
+```sh
+$ npm run api-doc
+```
+
+### Edit the API doc
+
+To start the editor:
+
+```sh
+$ npm run swagger-edit
+```
+
+Note that you have to **manually import and export** the `swagger.yaml` file in `api-doc/swagger.yaml`.
+
 ## Documentation
 
 See the [wiki](https://github.com/jayhuynh/be-creamcats/wiki).
