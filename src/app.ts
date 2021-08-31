@@ -3,6 +3,7 @@ import swaggerUi from "swagger-ui-express";
 
 import dummies from "./components/dummies";
 import utils from "./utils";
+import errors from "./components/errors";
 
 const app = express();
 
@@ -17,5 +18,9 @@ app.use(express.json());
 
 // Dummies
 app.use("/dummies", dummies.router);
+
+// Error Handling
+app.use("*", errors.controllers.notFoundHandler);
+app.use(errors.controllers.apiErrorHandler);
 
 export default app;
