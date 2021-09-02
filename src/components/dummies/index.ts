@@ -3,5 +3,5 @@ import router from "./dummies.routes";
 
 export default {
   controllers,
-  router
+  router,
 };
