@@ -63,15 +63,12 @@ async function genApplication(users: User[], positions: Position[]) {
 
   const application = await prisma.application.findUnique({
     where: {
-      unique_userId_positionId_pair: {
+      userId_positionId: {
         userId: user.id,
         positionId: position.id,
       },
     },
   });
-
-  console.log(`${application}`);
-  console.log(`${JSON.stringify(application)}`);
 
   if (application) return null;
 
