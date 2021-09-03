@@ -13,6 +13,7 @@ export class ApiError extends Error {
   }
 }
 
+// Example: find a user with a given email
 export class NotFoundError extends ApiError {
   constructor(message: string) {
     super({

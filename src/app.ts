@@ -24,7 +24,7 @@ app.use("/dummies", dummiesRouter);
 app.use("/applications", applicationsRouter);
 
 // Error Handling
-app.use("*", notFoundHandler);
-app.use(apiErrorHandler);
+app.use("*", notFoundHandler); // catch all invalid routes
+app.use(apiErrorHandler); // central error-handling middleware
 
 export default app;
