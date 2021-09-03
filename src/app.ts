@@ -1,30 +1,30 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 
-import applications from "./components/applications";
-import dummies from "./components/dummies";
-import errors from "./components/errors";
-import utils from "./utils";
+import { router as applicationsRouter } from "./components/applications";
+import { router as dummiesRouter } from "./components/dummies";
+import { notFoundHandler, apiErrorHandler } from "./components/errors";
+import { logger, swaggerDocument } from "./utils";
 
 const app = express();
 
 // Swagger for api doc
-app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(utils.swaggerDocument));
+app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Logging
-app.use(utils.logger);
+app.use(logger);
 
 // Json parsing middleware
 app.use(express.json());
 
 // Dummies
-app.use("/dummies", dummies.router);
+app.use("/dummies", dummiesRouter);
 
 // Applications
-app.use("/applications", applications.router);
+app.use("/applications", applicationsRouter);
 
 // Error Handling
-app.use("*", errors.controllers.notFoundHandler);
-app.use(errors.controllers.apiErrorHandler);
+app.use("*", notFoundHandler);
+app.use(apiErrorHandler);
 
 export default app;

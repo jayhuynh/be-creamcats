@@ -1,8 +1,8 @@
 import express from "express";
-import dummiesControllers from "./dummies.controllers";
+import * as controllers from "./dummies.controllers";
 
 const router = express.Router();
 
-router.route("/").get(dummiesControllers.getDummies);
+router.route("/").get(controllers.getDummies);
 
-export default router;
+export { router };

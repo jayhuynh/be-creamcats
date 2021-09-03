@@ -1,30 +1,48 @@
 import { Application } from "@prisma/client";
-import express from "express";
+import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 
-import prisma from "../../utils/prisma";
-import ApiError from "../errors/error";
+import { prisma } from "../../utils";
+import { ApiError, MissingAttributeError, NotFoundError } from "../errors";
 
-const addApplication = expressAsyncHandler(
-  async (
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
+export const getApplication = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const application: Application = await prisma.application.findUnique({
+        where: {
+          userId_positionId: {
+            userId: req.body.userId,
+            positionId: req.body.positionId,
+          },
+        },
+      });
+      if (application) {
+        res.status(200).json(application);
+      } else {
+        next(new NotFoundError("Application not found"));
+      }
+    } catch (e) {
+      next(e);
+    }
+  }
+);
+
+export const addApplication = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     if (!req.body.userId) {
-      next(new ApiError("Attribute userId missing from request body", 422));
+      next(new MissingAttributeError("userId"));
     }
     if (!req.body.positionId) {
-      next(new ApiError("Attribute positionId missing from request body", 422));
+      next(new MissingAttributeError("positionId"));
     }
     if (!req.body.notes) {
-      next(new ApiError("Attribute notes missing from request body", 422));
+      next(new MissingAttributeError("notes"));
     }
     let existingApplication: Application;
     try {
       existingApplication = await prisma.application.findUnique({
         where: {
-          unique_userId_positionId_pair: {
+          userId_positionId: {
             userId: req.body.userId,
             positionId: req.body.positionId,
           },
@@ -35,10 +53,11 @@ const addApplication = expressAsyncHandler(
     }
     if (existingApplication) {
       next(
-        new ApiError(
-          "Application with the same userId and positionId already exists",
-          409
-        )
+        new ApiError({
+          statusCode: 409,
+          message:
+            "Application with the same userId and positionId already exists",
+        })
       );
     }
     try {
@@ -57,5 +76,3 @@ const addApplication = expressAsyncHandler(
     });
   }
 );
-
-export default { addApplication };

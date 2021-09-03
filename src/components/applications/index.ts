@@ -1,4 +1,2 @@
-import controllers from "./applications.controllers";
-import router from "./applications.routes";
-
-export { controllers, router };
+export * from "./applications.controllers";
+export * from "./applications.routes";
