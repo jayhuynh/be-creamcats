@@ -1,16 +1,19 @@
 import express from "express";
-import ApiError from "./error";
+import { ApiError } from "./error";
 
-const notFoundHandler = (
+export const notFoundHandler = (
   _req: express.Request,
   _res: express.Response,
   next: express.NextFunction
 ) => {
-  const err = new ApiError("Route not found", 404);
+  const err = new ApiError({
+    statusCode: 404,
+    message: "Route not found",
+  });
   next(err);
 };
 
-const apiErrorHandler = (
+export const apiErrorHandler = (
   err: Error,
   _req: express.Request,
   res: express.Response,
@@ -26,5 +29,3 @@ const apiErrorHandler = (
     message: message,
   });
 };
-
-export default { notFoundHandler, apiErrorHandler };

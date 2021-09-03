@@ -10,8 +10,9 @@
     "db-generate": "npx prisma generate",
     "db-push": "npx prisma db push",
     "db-reset": "npx prisma migrate reset",
+    "db-view": "npx prisma studio",
     "swagger-edit": "npx opener http://localhost:$(grep SWAGGER_EDITOR_HOST_PORT .env | cut -d '=' -f2)/",
-    "api-doc": "npx opener http://localhost:$(grep APP_HOST_PORT .env | cut -d '=' -f2)/api-docs"
+    "api-doc": "npx opener http://localhost:$(grep APP_HOST_PORT .env | cut -d '=' -f2)/api-doc"
   },
   "repository": {
     "type": "git",

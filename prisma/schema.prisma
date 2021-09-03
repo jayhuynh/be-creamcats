@@ -61,7 +61,7 @@ model Application {
   userId     Int
   notes      String
 
-  @@unique([userId, positionId], name: "unique_userId_positionId_pair")
+  @@unique([userId, positionId])
 }
 
 enum EventStatus {
