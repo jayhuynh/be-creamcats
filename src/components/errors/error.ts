@@ -13,6 +13,15 @@ export class ApiError extends Error {
   }
 }
 
+export class AuthError extends ApiError {
+  constructor(message: string) {
+    super({
+      statusCode: 401, // https://stackoverflow.com/a/32752617/16495552
+      message: message,
+    });
+  }
+}
+
 // Example: find a user with a given email
 export class NotFoundError extends ApiError {
   constructor(message: string) {
@@ -28,6 +37,15 @@ export class MissingAttributeError extends ApiError {
     super({
       statusCode: 422, // https://stackoverflow.com/a/10323055/16495552
       message: `Attribute ${attributeName} missing from request body`,
+    });
+  }
+}
+
+export class ConflictError extends ApiError {
+  constructor(message: string) {
+    super({
+      statusCode: 409, // https://stackoverflow.com/a/3826024/16495552
+      message: message,
     });
   }
 }

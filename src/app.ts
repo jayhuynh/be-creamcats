@@ -1,6 +1,7 @@
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 
+import { router as authRouter } from "./components/auth";
 import { router as applicationsRouter } from "./components/applications";
 import { router as dummiesRouter } from "./components/dummies";
 import { notFoundHandler, apiErrorHandler } from "./components/errors";
@@ -16,6 +17,9 @@ app.use(logger);
 
 // Json parsing middleware
 app.use(express.json());
+
+// Auth
+app.use("/auth", authRouter);
 
 // Dummies
 app.use("/dummies", dummiesRouter);
