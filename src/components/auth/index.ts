@@ -1,7 +1,3 @@
-import controllers from "./auth.controllers";
-import router from "../dummies/dummies.routes";
-
-export default {
-  controllers,
-  router,
-};
+export * from "./auth";
+export * from "./auth.controllers";
+export * from "./auth.routes";

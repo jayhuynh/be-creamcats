@@ -1,92 +1,85 @@
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 
-import prisma from "../../utils/prisma";
+import { prisma } from "../../utils/prisma";
+import expressAsyncHandler from "express-async-handler";
+import { ConflictError, AuthError, NotFoundError } from "../errors";
 
-const login = async (req: Request, res: Response) => {
-  const { username, password } = req.body;
+const login = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, password } = req.body;
 
-  const user = await prisma.user.findUnique({
-    where: {
-      username,
-    },
-  });
+    const user = await prisma.user.findUnique({ where: { email } });
 
-  // const user = await prisma.user({username});
-
-  if (!user) {
-    return res.status(400).json({ success: false, error: "User not found" });
-  }
-
-  try {
-    if (await argon2.verify(user.hash, password)) {
-      const token = jwt.sign({ userId: user.id }, "secret");
-
-      return res.status(200).json({ success: true, token });
+    if (!user) {
+      next(new NotFoundError("User not found"));
     }
-    return res.status(400).json({ success: false, error: "Invalid Password" });
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ success: false, error: "Internal Server Error" });
+
+    try {
+      if (await argon2.verify(user.password, password)) {
+        const token = jwt.sign({ userId: user.id }, "secret");
+        return res.status(200).json({ success: true, token });
+      }
+      next(new AuthError("Invalid Password"));
+    } catch (e) {
+      next(e);
+    }
   }
-};
+);
 
-const register = async (req: Request, res: Response) => {
-  const { email, username, password } = req.body;
+const register = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email, fullname, password } = req.body;
 
-  console.log(email, username, password);
+    const result = await prisma.user.findUnique({ where: { email } });
 
-  const result = await prisma.user.findUnique({
-    where: {
-      username,
-    },
-  });
+    if (result) {
+      next(new ConflictError("User already exists"));
+    }
 
-  if (result) {
-    return res
-      .status(400)
-      .json({ success: false, error: "User already exists" });
+    const hashedPwd = await argon2.hash(password);
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        fullname,
+        password: hashedPwd,
+      },
+    });
+
+    const token = jwt.sign(
+      { userId: user.id },
+      process.env.ACCESS_TOKEN_SECRET
+    );
+
+    return res.status(200).json({ success: true, accessToken: token });
   }
+);
 
-  const hash = await argon2.hash(password);
+const checkAvailableEmail = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { username: email } = req.body;
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      username,
-      hash,
-    },
-  });
+    const result = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
 
-  const token = jwt.sign({ userId: user.id }, process.env.ACCESS_TOKEN_SECRET);
+    if (result) {
+      next(new ConflictError("User already exists"));
+    }
 
-  return res.status(200).json({ success: true, accessToken: token });
-};
-
-const checkAvaiableUsername = async (req: Request, res: Response) => {
-  const { username } = req.body;
-
-  const result = await prisma.user.findUnique({
-    where: {
-      username,
-    },
-  });
-
-  if (result) {
-    return res
-      .status(400)
-      .json({ success: false, error: "User already exists" });
+    return res.status(200).json({
+      success: true,
+      message: `Email ${email} is available!`,
+    });
   }
-  return res.json({
-    success: true,
-    message: `Username ${username} is available!`,
-  });
-};
+);
 
 export default {
   login,
   register,
-  checkAvaiableUsername,
+  checkAvailableEmail,
 };

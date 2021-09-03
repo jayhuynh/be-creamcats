@@ -1,4 +1,2 @@
-import controllers from "./dummies.controllers";
-import router from "./dummies.routes";
-
-export default { controllers, router };
+export * from "./dummies.controllers";
+export * from "./dummies.routes";

@@ -1,0 +1,159 @@
+swagger: "2.0"
+info:
+  description: "CreamCats Backend API Doc"
+  version: "1.0.0"
+  title: "CreamCats Backend API Doc"
+host: "creamcats.swagger.io"
+basePath: "/v1"
+schemes:
+- "https"
+- "http"
+tags:
+- name: "user"
+  description: "User accounts, authentication & authorisation"
+- name: "position"
+  description: "Positions"
+- name: "application"
+  description: "Applications"
+definitions:
+  User:
+    properties:
+      id:
+        type: integer
+        description: id of the user
+      email:
+        type: string
+        description: email of the user
+      fullname:
+        type: string
+        description: fullname of the user
+      password:
+        type: string
+        description: password of the user
+  Org:
+    properties:
+      id:
+        type: integer
+        description: id of the organisation
+      name:
+        type: string
+        description: name of the organisation
+      desc:
+        type: string
+        description: description of the organisation
+  Event:
+    properties:
+      id:
+        type: integer
+        description: id of the event
+      name:
+        type: string
+        description: name of the event
+      desc:
+        type: string
+        description: description of the event
+      location:
+        type: string
+        description: location of the event
+      startTime:
+        type: string
+        format: date-time
+        description: start time of the event
+      endTime:
+        type: string
+        format: date-time
+        description: end time of the event
+      gallery:
+        type: array
+        items:
+          type: string
+        description: gallery of the event
+      status:
+        type: string
+        enum:
+        - "ONGOING"
+        - "PAST"
+  Position:
+    properties:
+      id:
+        type: integer
+        description: id of the position
+      name:
+        type: string
+        description: name of the position
+      desc:
+        type: string
+        description: description for the position
+      requirements:
+        type: string
+        description: requirements for the position
+      typesOfWork:
+        type: array
+        items:
+          type: string
+        description: types of work of the position
+      timeCreated:
+        type: string
+        format: date-time
+        description: when the position is created
+      thumbnail:
+        type: string
+        description: the thumbnail of the position
+  Application:
+    properties:
+      userId:
+        type: integer
+        description: id of the user
+      positionId:
+        type: integer
+        description: id of the position
+      notes:
+        type: string
+        description: notes from the user
+paths:
+  /users:
+    post:
+      tags:
+      - "user"
+      summary: Register user
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: successful
+  /positions:
+    get:
+      tags:
+      - "position"
+      summary: Get positions
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: successful
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Position"
+  /applications:
+    post:
+      tags:
+      - "application"
+      summary: Submit application
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created user object"
+        required: true
+        schema:
+          $ref: "#/definitions/Application"
+      responses:
+        200:
+          description: successful
+        409:
+          description: application (with the same userId and positionId) already exists
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"

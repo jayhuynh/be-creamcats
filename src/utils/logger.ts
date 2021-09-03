@@ -1,7 +1,7 @@
 import PinoHttp from "pino-http";
 import PinoPretty from "pino-pretty";
 
-export default PinoHttp({
+export const logger = PinoHttp({
   prettyPrint: {
     levelFirst: true,
   },
