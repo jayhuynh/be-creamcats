@@ -19,7 +19,7 @@ export const login = expressAsyncHandler(
     try {
       if (await argon2.verify(user.password, password)) {
         const token = jwt.sign({ userId: user.id }, "secret");
-        return res.status(200).json({ success: true, token });
+        res.status(200).json({ accessToken: token });
       }
       next(new AuthError("Invalid Password"));
     } catch (e) {
@@ -53,7 +53,7 @@ export const register = expressAsyncHandler(
       process.env.ACCESS_TOKEN_SECRET
     );
 
-    return res.status(200).json({ success: true, accessToken: token });
+    res.status(200).json({ accessToken: token });
   }
 );
 
@@ -64,11 +64,10 @@ export const checkAvailableEmail = expressAsyncHandler(
     const result = await prisma.user.findUnique({ where: { email } });
 
     if (result) {
-      next(new ConflictError("User already exists"));
+      next(new ConflictError("Email has already been used"));
     }
 
-    return res.status(200).json({
-      success: true,
+    res.status(200).json({
       message: `Email ${email} is available!`,
     });
   }

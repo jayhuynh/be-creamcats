@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 
 import { prisma } from "../../utils";
-import { ApiError, MissingAttributeError, NotFoundError } from "../errors";
+import { ConflictError, MissingAttributeError, NotFoundError } from "../errors";
 
 export const getApplication = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -53,11 +53,9 @@ export const addApplication = expressAsyncHandler(
     }
     if (existingApplication) {
       next(
-        new ApiError({
-          statusCode: 409,
-          message:
-            "Application with the same userId and positionId already exists",
-        })
+        new ConflictError(
+          "Application with the same userId and positionId already exists"
+        )
       );
     }
     try {
