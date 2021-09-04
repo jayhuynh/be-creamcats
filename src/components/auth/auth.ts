@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+
 import { AuthError } from "../errors";
 
 export const auth = expressAsyncHandler(
-  (req: Request, res: Response, next: NextFunction) => {
+  (req: Request, _res: Response, next: NextFunction) => {
     if (!req.headers.authorization) {
       next(new AuthError("Missing Authorization Header"));
     }
@@ -26,14 +27,9 @@ export const auth = expressAsyncHandler(
       tokenBody = jwt.verify(token, "secret");
       req.body.user = tokenBody;
     } catch (e) {
-      return res
-        .status(400)
-        .json({ success: false, error: "Invalid Token", invalidate: true });
-      next();
+      next(new AuthError("Invalid Token"));
     }
 
     next();
   }
 );
-
-export default auth;

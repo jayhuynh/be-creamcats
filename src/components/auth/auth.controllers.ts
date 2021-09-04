@@ -1,12 +1,12 @@
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
+import expressAsyncHandler from "express-async-handler";
 import { NextFunction, Request, Response } from "express";
 
 import { prisma } from "../../utils/prisma";
-import expressAsyncHandler from "express-async-handler";
 import { ConflictError, AuthError, NotFoundError } from "../errors";
 
-const login = expressAsyncHandler(
+export const login = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
 
@@ -28,7 +28,7 @@ const login = expressAsyncHandler(
   }
 );
 
-const register = expressAsyncHandler(
+export const register = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, fullname, password } = req.body;
 
@@ -57,15 +57,11 @@ const register = expressAsyncHandler(
   }
 );
 
-const checkAvailableEmail = expressAsyncHandler(
+export const checkAvailableEmail = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { username: email } = req.body;
+    const { email } = req.params;
 
-    const result = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    });
+    const result = await prisma.user.findUnique({ where: { email } });
 
     if (result) {
       next(new ConflictError("User already exists"));
@@ -77,9 +73,3 @@ const checkAvailableEmail = expressAsyncHandler(
     });
   }
 );
-
-export default {
-  login,
-  register,
-  checkAvailableEmail,
-};
