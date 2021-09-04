@@ -1,5 +1,12 @@
 # CreamCats - Backend App
 
+- [CreamCats - Backend App](#creamcats---backend-app)
+  - [Usage](#usage)
+  - [API Doc](#api-doc)
+    - [View the API doc](#view-the-api-doc)
+  - [Documentation](#documentation)
+  - [Workflow](#workflow)
+
 ## Usage
 
 To start, run:
@@ -32,18 +39,6 @@ $ npm run api-doc
 
 This should open the doc at `http://localhost:6400/api-doc`.
 
-
-### Edit the API doc
-
-To start the editor:
-
-```sh
-$ npm run swagger-edit
-```
-
-This should open the Swagger editor at `http://localhost:6402`. If you want to change the port, do so by changing `SWAGGER_EDITOR_HOST_PORT` in `.env`.
-
-Note that you have to **manually import and export** the `swagger.yaml` file in `api-doc/swagger.yaml`.
 
 ## Documentation
 
