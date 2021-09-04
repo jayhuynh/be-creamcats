@@ -9,7 +9,6 @@ services:
       - "${APP_HOST_PORT}:${APP_CONT_PORT}"
     depends_on:
       - db
-      - swagger-editor
     volumes:
       - .:/app
 
@@ -24,12 +23,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - creamcats-db:/var/lib/postgresql/data
-
-  swagger-editor:
-    image: "swaggerapi/swagger-editor"
-    restart: unless-stopped
-    ports:
-      - "${SWAGGER_EDITOR_HOST_PORT}:${SWAGGER_EDITOR_CONT_PORT}"
 
 volumes:
   creamcats-db: {}

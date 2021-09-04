@@ -4,6 +4,7 @@
     "esbenp.prettier-vscode",
     "Prisma.prisma",
     "ms-azuretools.vscode-docker",
-    "irongeek.vscode-env"
+    "irongeek.vscode-env",
+    "42crunch.vscode-openapi"
   ]
 }

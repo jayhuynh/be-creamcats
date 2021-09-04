@@ -9,38 +9,43 @@ schemes:
 - "https"
 - "http"
 tags:
-- name: "user"
-  description: "User accounts, authentication & authorisation"
-- name: "position"
-  description: "Positions"
 - name: "application"
   description: "Applications"
+- name: "auth"
+  description: "Authentication & authorisation"
+- name: "events"
+  description: "Events"
+- name: "organizations"
+  description: "Organization"
+- name: "positions"
+  description: "Positions"
+- name: "users"
+  description: "Users"
 definitions:
-  User:
+  Application:
     properties:
-      id:
+      userId:
         type: integer
         description: id of the user
-      email:
-        type: string
-        description: email of the user
-      fullname:
-        type: string
-        description: fullname of the user
-      password:
-        type: string
-        description: password of the user
-  Org:
-    properties:
-      id:
+      positionId:
         type: integer
-        description: id of the organisation
-      name:
+        description: id of the position
+      notes:
         type: string
-        description: name of the organisation
-      desc:
+        description: notes from the user
+  AuthSuccessResponse:
+    properties:
+      accessToken:
         type: string
-        description: description of the organisation
+        description: JWT token
+  ErrorResponse:
+    properties:
+      statusCode:
+        type: integer
+        description: status code
+      message:
+        type: string
+        description: error message
   Event:
     properties:
       id:
@@ -73,6 +78,17 @@ definitions:
         enum:
         - "ONGOING"
         - "PAST"
+  Org:
+    properties:
+      id:
+        type: integer
+        description: id of the organisation
+      name:
+        type: string
+        description: name of the organisation
+      desc:
+        type: string
+        description: description of the organisation
   Position:
     properties:
       id:
@@ -99,42 +115,36 @@ definitions:
       thumbnail:
         type: string
         description: the thumbnail of the position
-  Application:
+  PositionDetails:
     properties:
-      userId:
+      position:
+        $ref: "#/definitions/Position"
+  User:
+    properties:
+      id:
         type: integer
         description: id of the user
-      positionId:
-        type: integer
-        description: id of the position
-      notes:
+      email:
         type: string
-        description: notes from the user
+        description: email of the user
+      fullname:
+        type: string
+        description: fullname of the user
+      password:
+        type: string
+        description: password of the user
+  UserDetails:
+    properties:
+      id:
+        type: integer
+        description: id of the user
+      email:
+        type: string
+        description: email of the user
+      fullname:
+        type: string
+        description: fullname of the user
 paths:
-  /users:
-    post:
-      tags:
-      - "user"
-      summary: Register user
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: successful
-  /positions:
-    get:
-      tags:
-      - "position"
-      summary: Get positions
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: successful
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/Position"
   /applications:
     post:
       tags:
@@ -150,10 +160,135 @@ paths:
         schema:
           $ref: "#/definitions/Application"
       responses:
-        200:
+        "200":
           description: successful
-        409:
-          description: application (with the same userId and positionId) already exists
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+        "409":
+          description: "ConflictError: application (with the same userId and positionId) already exists"
+        "422":
+          description: "MissingAttributeError: some attribute missing"
+  /auth/login:
+    post:
+      tags:
+      - "auth"
+      summary: Login
+      produces:
+      - "application/json"
+      responses:
+        "200":
+          description: "Successful login"
+          schema:
+            $ref: "#/definitions/AuthSuccessResponse"
+        "401":
+          description: "AuthError"
+        "404":
+          description: "NotFoundError: User not found"
+  /auth/register:
+    post:
+      tags:
+      - "auth"
+      summary: Register a new user
+      consumes:
+      - "application/json"
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: "#/definitions/AuthSuccessResponse"
+        "409":
+          description: "ConflictError: User already exists"
+  /auth/email/{email}:
+    get:
+      tags:
+      - "auth"
+      summary: Check if email is available
+      parameters:
+      - name: "email"
+        in: path
+        description: email address
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "Email is available"
+        "409":
+          description: "ConflictError: Email has already been used"
+  /events/{eventId}:
+    get:
+      tags:
+      - "events"
+      description: get event
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: "#/definitions/Event"
+        "404":
+          description: "NotFoundError: Event not found"
+  /organizations/{organizationId}:
+    get:
+      tags:
+      - "organizations"
+      description: get organization
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: "#/definitions/Event"
+        "404":
+          description: "NotFoundError: Organization not found"
+  /positions:
+    get:
+      tags:
+      - "positions"
+      summary: Get positions
+      produces:
+      - "application/json"
+      parameters:
+      - name: "sort"
+        in: query
+        description: column to sort by
+        required: false
+        type: "string"
+        enum: [ 'applications' ]
+      - name: "order"
+        in: query
+        description: sort order
+        required: false
+        type: "string"
+        enum: [ 'asc', 'desc' ]
+      responses:
+        "200":
+          description: successful
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Position"
+        "404":
+          description: "NotFoundError: Application not found"
+  /positions/{positionId}:
+    get:
+      tags:
+      - "positions"
+      summary: "Get position details"
+      parameters:
+      - name: "positionId"
+        in: path
+        description: id of position
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: successful
+          schema:
+            $ref: "#/definitions/Position"
+        "404":
+          description: "NotFoundError: Position not found"
+  /users/me:
+    get:
+      tags:
+      - "users"
+      responses:
+        "200":
+          description: successful
+          schema:
+            $ref: "#/definitions/UserDetails"
