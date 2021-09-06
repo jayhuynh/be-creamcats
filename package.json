@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "test": "jest --coverage --verbose --passWithNoTests --detectOpenHandles --forceExit",
-    "db-seed": "npx prisma db seed --preview-feature",
-    "db-migrate": "npx prisma migrate dev",
+    "db-seed": "docker exec -it be-creamcats npx prisma db seed --preview-feature",
+    "db-migrate": "docker exec -it be-creamcats npx prisma migrate dev",
     "db-generate": "npx prisma generate",
-    "db-push": "npx prisma db push",
-    "db-reset": "npx prisma migrate reset",
+    "db-push": "docker exec -it be-creamcats npx prisma db push",
+    "db-reset": "docker exec -it be-creamcats npx prisma migrate reset",
     "db-view": "npx prisma studio",
     "swagger-edit": "npx opener http://localhost:$(grep SWAGGER_EDITOR_HOST_PORT .env | cut -d '=' -f2)/",
     "api-doc": "npx opener http://localhost:$(grep APP_HOST_PORT .env | cut -d '=' -f2)/api-doc"

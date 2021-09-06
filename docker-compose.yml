@@ -2,6 +2,7 @@ version: "3.7"
 
 services:
   app:
+    container_name: "${APP_CONT_NAME}"
     build: .
     command: npm run dev
     restart: unless-stopped
