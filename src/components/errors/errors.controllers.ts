@@ -19,7 +19,7 @@ export const apiErrorHandler = (
   res: express.Response,
   _next: express.NextFunction
 ) => {
-  let statusCode = err instanceof ApiError ? err.statusCode : 500;
+  const statusCode = err instanceof ApiError ? err.statusCode : 500;
   res.status(statusCode).json({
     message: err.message,
   });

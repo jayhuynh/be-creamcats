@@ -8,7 +8,7 @@ export class ApiError extends Error {
 
   constructor(apiErrorInput: ApiErrorInput) {
     super(apiErrorInput.message);
-    this.statusCode = this.statusCode;
+    this.statusCode = apiErrorInput.statusCode;
     Error.captureStackTrace(this, this.constructor);
   }
 }
