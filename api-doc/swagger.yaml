@@ -284,8 +284,6 @@ paths:
             type: array
             items:
               $ref: "#/definitions/Position"
-        "404":
-          description: "NotFoundError: Application not found"
   /positions/{positionId}:
     get:
       tags:

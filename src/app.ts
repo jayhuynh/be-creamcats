@@ -5,12 +5,12 @@ import { router as authRouter } from "./components/auth";
 import { router as applicationsRouter } from "./components/applications";
 import { router as dummiesRouter } from "./components/dummies";
 import { notFoundHandler, apiErrorHandler } from "./components/errors";
-import { logger, swaggerDocument } from "./utils";
+import { logger, swaggerRouter } from "./utils";
 
 const app = express();
 
 // Swagger for api doc
-app.use("/api-doc", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/api-doc", swaggerRouter);
 
 // Logging
 app.use(logger);
