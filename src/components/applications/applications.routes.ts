@@ -1,11 +1,10 @@
 import express from "express";
-import * as controllers from "./applications.controllers";
+import { addApplication, getApplicationById } from "./applications.controllers";
 
 const router = express.Router();
 
-router
-  .route("/")
-  .get(controllers.getApplication)
-  .post(controllers.addApplication);
+router.route("/").post(addApplication);
+
+router.route("/:id").get(getApplicationById);
 
 export { router };

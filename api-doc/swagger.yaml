@@ -9,7 +9,7 @@ schemes:
 - "https"
 - "http"
 tags:
-- name: "application"
+- name: "applications"
   description: "Applications"
 - name: "auth"
   description: "Authentication & authorisation"
@@ -148,7 +148,7 @@ paths:
   /applications:
     post:
       tags:
-      - "application"
+      - "applications"
       summary: Submit application
       produces:
       - "application/json"
@@ -165,7 +165,28 @@ paths:
         "409":
           description: "ConflictError: application (with the same userId and positionId) already exists"
         "422":
-          description: "MissingAttributeError: some attribute missing"
+          description: "SchemaError"
+  /applications/{applicationId}:
+    get:
+      tags:
+      - "applications"
+      summary: Get application by id
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created user object"
+        required: true
+        schema:
+          $ref: "#/definitions/Application"
+      responses:
+        "200":
+          description: successful
+        "409":
+          description: "ConflictError: application (with the same userId and positionId) already exists"
+        "422":
+          description: "SchemaError"
   /auth/login:
     post:
       tags:
