@@ -6,4 +6,5 @@ export const logger = PinoHttp({
     levelFirst: true,
   },
   prettifier: PinoPretty,
+  level: "info",
 });

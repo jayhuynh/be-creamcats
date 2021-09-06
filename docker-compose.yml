@@ -13,6 +13,7 @@ services:
       - .:/app
 
   db:
+    container_name: "${DB_CONT_NAME}"
     image: postgres:13-alpine
     restart: unless-stopped
     ports:
