@@ -41,18 +41,20 @@ export const addApplication = expressAsyncHandler(
       positionId: Joi.number().integer().required(),
       notes: Joi.string(),
     });
-    const { error, value: body } = schema.validate(req.body);
+    const { error, value } = schema.validate(req.body);
     if (error) {
       next(new SchemaError(error.message));
     }
+
+    const { userId, positionId, notes } = value;
 
     let existingApplication: Application;
     try {
       existingApplication = await prisma.application.findUnique({
         where: {
           userId_positionId: {
-            userId: body.userId,
-            positionId: body.positionId,
+            userId,
+            positionId,
           },
         },
       });
@@ -70,9 +72,9 @@ export const addApplication = expressAsyncHandler(
     try {
       await prisma.application.create({
         data: {
-          userId: req.body.userId,
-          positionId: req.body.positionId,
-          notes: req.body.notes,
+          userId,
+          positionId,
+          notes,
         },
       });
     } catch (e) {
