@@ -21,6 +21,7 @@ export const login = expressAsyncHandler(
 
     if (!user) {
       next(new NotFoundError("User not found"));
+      return;
     }
 
     try {
@@ -29,8 +30,10 @@ export const login = expressAsyncHandler(
         res.status(200).json({ accessToken: token });
       }
       next(new AuthError("Invalid Password"));
+      return;
     } catch (e) {
       next(e);
+      return;
     }
   }
 );
@@ -45,6 +48,7 @@ export const register = expressAsyncHandler(
     const { error, value } = schema.validate(req.body);
     if (error) {
       next(new SchemaError(error.message));
+      return;
     }
 
     const { email, fullname, password } = value;
@@ -53,6 +57,7 @@ export const register = expressAsyncHandler(
 
     if (result) {
       next(new ConflictError("User already exists"));
+      return;
     }
 
     const hashedPwd = await argon2.hash(password);
@@ -82,12 +87,14 @@ export const checkAvailableEmail = expressAsyncHandler(
 
     if (error) {
       next(new BadRequestError(error.message));
+      return;
     }
 
     const result = await prisma.user.findUnique({ where: { email } });
 
     if (result) {
       next(new ConflictError("Email has already been used"));
+      return;
     }
 
     res.status(200).json({

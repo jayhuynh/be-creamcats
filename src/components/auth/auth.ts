@@ -8,6 +8,7 @@ export const auth = expressAsyncHandler(
   (req: Request, _res: Response, next: NextFunction) => {
     if (!req.headers.authorization) {
       next(new AuthError("Missing Authorization Header"));
+      return;
     }
 
     const authHeader = req.headers.authorization;
@@ -16,9 +17,11 @@ export const auth = expressAsyncHandler(
 
     if (!authMethod || !token) {
       next(new AuthError("Invalid Authorization Header"));
+      return;
     }
     if (authMethod !== "Bearer") {
       next(new AuthError("Invalid Auth Method"));
+      return;
     }
 
     let tokenBody;
@@ -28,6 +31,7 @@ export const auth = expressAsyncHandler(
       req.body.user = tokenBody;
     } catch (e) {
       next(new AuthError("Invalid Token"));
+      return;
     }
 
     next();

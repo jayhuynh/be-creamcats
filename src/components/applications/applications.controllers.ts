@@ -17,6 +17,7 @@ export const getApplicationById = expressAsyncHandler(
 
     if (error) {
       next(new BadRequestError(error.message));
+      return;
     }
 
     try {
@@ -27,9 +28,11 @@ export const getApplicationById = expressAsyncHandler(
         res.status(200).json(application);
       } else {
         next(new NotFoundError(`Application with id ${id} not found`));
+        return;
       }
     } catch (e) {
       next(e);
+      return;
     }
   }
 );
@@ -44,6 +47,7 @@ export const addApplication = expressAsyncHandler(
     const { error, value } = schema.validate(req.body);
     if (error) {
       next(new SchemaError(error.message));
+      return;
     }
 
     const { userId, positionId, notes } = value;
@@ -60,6 +64,7 @@ export const addApplication = expressAsyncHandler(
       });
     } catch (e) {
       next(e);
+      return;
     }
     if (existingApplication) {
       next(
@@ -67,6 +72,7 @@ export const addApplication = expressAsyncHandler(
           "Application with the same userId and positionId already exists"
         )
       );
+      return;
     }
 
     try {
@@ -79,6 +85,7 @@ export const addApplication = expressAsyncHandler(
       });
     } catch (e) {
       next(e);
+      return;
     }
 
     res.status(200).json({
