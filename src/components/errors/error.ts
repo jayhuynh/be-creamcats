@@ -13,11 +13,20 @@ export class ApiError extends Error {
   }
 }
 
+export class BadRequestError extends ApiError {
+  constructor(message: string) {
+    super({
+      statusCode: 400,
+      message,
+    });
+  }
+}
+
 export class AuthError extends ApiError {
   constructor(message: string) {
     super({
       statusCode: 401, // https://stackoverflow.com/a/32752617/16495552
-      message: message,
+      message,
     });
   }
 }
@@ -27,16 +36,21 @@ export class NotFoundError extends ApiError {
   constructor(message: string) {
     super({
       statusCode: 404,
-      message: message,
+      message,
     });
   }
 }
 
-export class MissingAttributeError extends ApiError {
-  constructor(attributeName: string) {
+/**
+ * Occurs when the request body does not match the required schema
+ * Status code is 422:
+ * - https://stackoverflow.com/a/10323055/16495552
+ */
+export class SchemaError extends ApiError {
+  constructor(message: string) {
     super({
-      statusCode: 422, // https://stackoverflow.com/a/10323055/16495552
-      message: `Attribute ${attributeName} missing from request body`,
+      statusCode: 422,
+      message,
     });
   }
 }
@@ -45,7 +59,7 @@ export class ConflictError extends ApiError {
   constructor(message: string) {
     super({
       statusCode: 409, // https://stackoverflow.com/a/3826024/16495552
-      message: message,
+      message,
     });
   }
 }

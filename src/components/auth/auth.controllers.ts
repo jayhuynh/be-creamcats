@@ -2,9 +2,16 @@ import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import expressAsyncHandler from "express-async-handler";
 import { NextFunction, Request, Response } from "express";
+import Joi from "joi";
 
 import { prisma } from "../../utils/prisma";
-import { ConflictError, AuthError, NotFoundError } from "../errors";
+import {
+  ConflictError,
+  AuthError,
+  NotFoundError,
+  SchemaError,
+  BadRequestError,
+} from "../errors";
 
 export const login = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -30,7 +37,17 @@ export const login = expressAsyncHandler(
 
 export const register = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, fullname, password } = req.body;
+    const schema = Joi.object({
+      email: Joi.string().email().required(),
+      fullname: Joi.string(),
+      password: Joi.string().required(),
+    });
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      next(new SchemaError(error.message));
+    }
+
+    const { email, fullname, password } = value;
 
     const result = await prisma.user.findUnique({ where: { email } });
 
@@ -59,7 +76,13 @@ export const register = expressAsyncHandler(
 
 export const checkAvailableEmail = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.params;
+    const { error, value: email } = Joi.string()
+      .email()
+      .validate(req.params.email);
+
+    if (error) {
+      next(new BadRequestError(error.message));
+    }
 
     const result = await prisma.user.findUnique({ where: { email } });
 

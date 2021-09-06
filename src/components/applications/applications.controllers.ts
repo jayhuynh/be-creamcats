@@ -1,25 +1,32 @@
 import { Application } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
+import Joi from "joi";
 
 import { prisma } from "../../utils";
-import { ConflictError, MissingAttributeError, NotFoundError } from "../errors";
+import {
+  ConflictError,
+  SchemaError,
+  NotFoundError,
+  BadRequestError,
+} from "../errors";
 
-export const getApplication = expressAsyncHandler(
+export const getApplicationById = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+    const { error, value: id } = Joi.number().integer().validate(req.params.id);
+
+    if (error) {
+      next(new BadRequestError(error.message));
+    }
+
     try {
       const application: Application = await prisma.application.findUnique({
-        where: {
-          userId_positionId: {
-            userId: req.body.userId,
-            positionId: req.body.positionId,
-          },
-        },
+        where: { id },
       });
       if (application) {
         res.status(200).json(application);
       } else {
-        next(new NotFoundError("Application not found"));
+        next(new NotFoundError(`Application with id ${id} not found`));
       }
     } catch (e) {
       next(e);
@@ -29,22 +36,23 @@ export const getApplication = expressAsyncHandler(
 
 export const addApplication = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.body.userId) {
-      next(new MissingAttributeError("userId"));
+    const schema = Joi.object({
+      userId: Joi.number().integer().required(),
+      positionId: Joi.number().integer().required(),
+      notes: Joi.string(),
+    });
+    const { error, value: body } = schema.validate(req.body);
+    if (error) {
+      next(new SchemaError(error.message));
     }
-    if (!req.body.positionId) {
-      next(new MissingAttributeError("positionId"));
-    }
-    if (!req.body.notes) {
-      next(new MissingAttributeError("notes"));
-    }
+
     let existingApplication: Application;
     try {
       existingApplication = await prisma.application.findUnique({
         where: {
           userId_positionId: {
-            userId: req.body.userId,
-            positionId: req.body.positionId,
+            userId: body.userId,
+            positionId: body.positionId,
           },
         },
       });
@@ -58,6 +66,7 @@ export const addApplication = expressAsyncHandler(
         )
       );
     }
+
     try {
       await prisma.application.create({
         data: {
@@ -69,6 +78,7 @@ export const addApplication = expressAsyncHandler(
     } catch (e) {
       next(e);
     }
+
     res.status(200).json({
       message: "Application successfully added",
     });
