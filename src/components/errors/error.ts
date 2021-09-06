@@ -43,6 +43,8 @@ export class NotFoundError extends ApiError {
 
 /**
  * Occurs when the request body does not match the required schema
+ * Note that we only use this when validating the body
+ * Use BadRequestError - statusCode 400 instead when validating path and query params
  * Status code is 422:
  * - https://stackoverflow.com/a/10323055/16495552
  */
