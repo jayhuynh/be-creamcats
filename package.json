@@ -2,6 +2,9 @@
   "name": "be-creamcats",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "14"
+  },
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "test": "jest --coverage --verbose --passWithNoTests --detectOpenHandles --forceExit",
