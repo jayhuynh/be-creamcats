@@ -13,6 +13,7 @@ model User {
   email        String        @unique
   fullname     String?
   password     String
+  // tags: Tag[]
   applications Application[]
 }
 
@@ -50,6 +51,7 @@ model Position {
   thumbnail    String
   Event        Event         @relation(fields: [eventId], references: [id])
   eventId      Int
+  // tags: Tag[]
   applications Application[]
 }
 
