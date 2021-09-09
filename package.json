@@ -2,6 +2,9 @@
   "name": "be-creamcats",
   "version": "1.0.0",
   "description": "",
+  "engines": {
+    "node": "14"
+  },
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "test": "jest --coverage --verbose --passWithNoTests --detectOpenHandles --forceExit",
@@ -29,11 +32,9 @@
     "@babel/preset-typescript": "^7.15.0",
     "@types/app-root-path": "^1.2.4",
     "@types/cors": "^2.8.12",
-    "@types/dotenv": "^8.2.0",
     "@types/express": "^4.17.13",
     "@types/faker": "^5.5.8",
     "@types/jest": "^27.0.1",
-    "@types/joi": "^17.2.3",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/node": "^16.7.5",
     "@types/pino-http": "^5.7.0",
