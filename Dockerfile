@@ -6,6 +6,6 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
-EXPOSE 3000
+EXPOSE ${APP_CONT_PORT}
 
 CMD ["npm", "run", "dev"]
