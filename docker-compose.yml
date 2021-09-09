@@ -11,7 +11,11 @@ services:
     depends_on:
       - db
     volumes:
-      - .:/app
+      - ./.env:/app/.env
+      - ./api-doc:/app/api-doc
+      - ./prisma:/app/prisma
+      - ./src:/app/src
+      - ./tsconfig.json:/app/tsconfig.json
 
   db:
     container_name: "${DB_CONT_NAME}"
