@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 
 import { router as authRouter } from "./components/auth";
 import { router as applicationsRouter } from "./components/applications";
@@ -8,6 +9,9 @@ import { notFoundHandler, apiErrorHandler } from "./components/errors";
 import { logger, swaggerRouter } from "./utils";
 
 const app = express();
+
+// Enable cors
+app.use(cors());
 
 // Swagger for api doc
 app.use("/api-doc", swaggerRouter);
