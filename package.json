@@ -6,7 +6,7 @@
     "node": "14"
   },
   "scripts": {
-    "dev": "npx prisma migrate reset --force && npx prisma generate && tsc && concurrently \"tsc -w\" \"nodemon dist/server.js\"",
+    "dev": "concurrently \"tsc -w\" \"nodemon dist/server.js\"",
     "test": "jest --coverage --verbose --passWithNoTests --detectOpenHandles --forceExit",
     "db-seed": "docker exec -it be-creamcats npx prisma db seed --preview-feature",
     "db-migrate": "docker exec -it be-creamcats npx prisma migrate dev",
