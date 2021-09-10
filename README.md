@@ -23,10 +23,13 @@ This will start:
 
 To change any of these ports, edit the `.env` file.
 
-Run the following command to clean out the current database, update the database schema, and re-seed the database:
+Run 2 commands below to migrate and seed for database.
+
+`You have to run it when you start backend first time or have new updates with schemas/seeds:`
 
 ```sh
-$ npm run db-reset
+$ npm run db-migrate
+$ npm run db-seed
 ```
 
 ## API Doc
