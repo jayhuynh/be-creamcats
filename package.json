@@ -10,10 +10,10 @@
     "test": "jest --coverage --verbose --passWithNoTests --detectOpenHandles --forceExit",
     "db-seed": "docker exec -it be-creamcats npx prisma db seed --preview-feature",
     "db-migrate": "docker exec -it be-creamcats npx prisma migrate dev",
-    "db-generate": "docker exec -it be-creamcats npx prisma generate",
+    "db-generate": "docker exec -it be-creamcats npx prisma generate && npx prisma generate",
     "db-push": "docker exec -it be-creamcats npx prisma db push",
     "db-reset": "docker exec -it be-creamcats npx prisma migrate reset",
-    "db-view": "npx prisma studio",
+    "db-view": "docker exec -d be-creamcats npx prisma studio && npx opener http://localhost:$(grep PRISMA_STUDIO_HOST_PORT .env | cut -d '=' -f2)",
     "api-doc": "npx opener http://localhost:$(grep APP_HOST_PORT .env | cut -d '=' -f2)/api-doc"
   },
   "repository": {
