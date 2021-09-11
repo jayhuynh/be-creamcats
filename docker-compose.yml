@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     ports:
       - "${APP_HOST_PORT}:${APP_CONT_PORT}"
+      - "${PRISMA_STUDIO_HOST_PORT}:${PRISMA_STUDIO_CONT_PORT}"
     depends_on:
       - db
     volumes:

@@ -29,6 +29,14 @@ $ npm run db-reset
 $ npm run db-generate
 ```
 
+To view the database, run:
+
+```sh
+$ npm run db-view
+```
+
+This will run the
+
 ## API Doc
 
 ### View the API doc
