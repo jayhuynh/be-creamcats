@@ -14,7 +14,7 @@ model User {
   email        String        @unique
   fullname     String?
   password     String
-  // tags: Tag[]
+  tags         Tag[]
   applications Application[]
 }
 
@@ -52,7 +52,7 @@ model Position {
   thumbnail    String
   Event        Event         @relation(fields: [eventId], references: [id])
   eventId      Int
-  // tags: Tag[]
+  tags         Tag[]
   applications Application[]
 }
 
@@ -65,6 +65,13 @@ model Application {
   notes      String
 
   @@unique([userId, positionId])
+}
+
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String
+  users     User[]
+  positions Position[]
 }
 
 enum EventStatus {
