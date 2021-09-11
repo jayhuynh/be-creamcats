@@ -19,17 +19,14 @@ This will start:
 
 * the node backend app on port `6400`
 * the postgreSQL database on port `6401`
-* the swagger editor on port `6402`
 
 To change any of these ports, edit the `.env` file.
 
-Run 2 commands below to migrate and seed for database.
-
-`You have to run it when you start backend first time or have new updates with schemas/seeds:`
+**Please run these commands when 1) starting backend first time, or 2) have a new schema update**:
 
 ```sh
-$ npm run db-migrate
-$ npm run db-seed
+$ npm run db-reset
+$ npm run db-generate
 ```
 
 ## API Doc
