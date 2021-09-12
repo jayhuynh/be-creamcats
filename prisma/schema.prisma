@@ -13,9 +13,10 @@ model User {
   id           Int           @id @default(autoincrement())
   email        String        @unique
   fullname     String?
+  gender       String?
   password     String
-  tags         Tag[]
   applications Application[]
+  posts        Post[]
 }
 
 model Org {
@@ -29,15 +30,14 @@ model Org {
 }
 
 model Event {
-  id        Int         @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
   desc      String
   location  String
   startTime DateTime
   endTime   DateTime
   gallery   String[]
-  status    EventStatus
-  Org       Org         @relation(fields: [orgId], references: [id])
+  Org       Org        @relation(fields: [orgId], references: [id])
   orgId     Int
   positions Position[]
 }
@@ -47,6 +47,7 @@ model Position {
   name         String
   desc         String
   requirements String
+  gender       String?
   typesOfWork  String[]
   timeCreated  DateTime      @updatedAt
   thumbnail    String
@@ -63,18 +64,28 @@ model Application {
   User       User     @relation(fields: [userId], references: [id])
   userId     Int
   notes      String
+  // status     ApplicationStatus
 
   @@unique([userId, positionId])
+}
+
+model Post {
+  id        Int    @id @default(autoincrement())
+  title     String
+  thumbnail String
+  content   String
+  User      User?  @relation(fields: [userId], references: [id])
+  userId    Int?
 }
 
 model Tag {
   id        Int        @id @default(autoincrement())
   name      String
-  users     User[]
   positions Position[]
 }
 
-enum EventStatus {
-  PAST
-  ONGOING
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
