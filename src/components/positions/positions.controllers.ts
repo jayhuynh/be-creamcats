@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
 
-import { BadRequestError } from "../errors";
+import { BadRequestError, NotFoundError } from "../errors";
 import { prisma } from "../../utils";
 import { Dict } from "../../utils/types";
 
@@ -84,3 +84,29 @@ async function getPositionIdsSortedBy(
     return positionIds;
   }
 }
+
+export const getPositionById = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { error, value: id } = Joi.number().integer().validate(req.params.id);
+
+    if (error) {
+      next(new BadRequestError(error.message));
+      return;
+    }
+
+    try {
+      const position: Position = await prisma.position.findUnique({
+        where: { id },
+      });
+      if (position) {
+        res.status(200).json(position);
+      } else {
+        next(new NotFoundError(`Position with id ${id} not found`));
+        return;
+      }
+    } catch (e) {
+      next(e);
+      return;
+    }
+  }
+);
