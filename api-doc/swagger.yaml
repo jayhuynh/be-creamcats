@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  description: "CreamCats Backend API Doc"
+  description: "CreamCats Backend API Doc. The database schema can be found at []()"
   version: "1.0.0"
   title: "CreamCats Backend API Doc"
 host: "localhost:6400"
@@ -19,6 +19,10 @@ tags:
   description: "Organization"
 - name: "positions"
   description: "Positions"
+- name: "posts"
+  description: "Posts"
+- name: "tags"
+  description: "Tags for recommendations"
 - name: "users"
   description: "Users"
 definitions:
@@ -33,6 +37,9 @@ definitions:
       notes:
         type: string
         description: notes from the user
+      status:
+        type: string
+        description: status of the application
   AuthSuccessResponse:
     properties:
       accessToken:
@@ -78,7 +85,7 @@ definitions:
         enum:
         - "ONGOING"
         - "PAST"
-  Org:
+  Organization:
     properties:
       id:
         type: integer
@@ -119,6 +126,22 @@ definitions:
     properties:
       position:
         $ref: "#/definitions/Position"
+  Post:
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      thumbnail:
+        type: string
+      content:
+        type: string
+  Tag:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
   User:
     properties:
       id:
@@ -149,7 +172,7 @@ paths:
     post:
       tags:
       - "applications"
-      summary: Submit application
+      summary: Submit application (DONE)
       produces:
       - "application/json"
       parameters:
@@ -170,7 +193,7 @@ paths:
     get:
       tags:
       - "applications"
-      summary: Get application by id
+      summary: Get application by id (DONE)
       produces:
       - "application/json"
       parameters:
@@ -187,11 +210,29 @@ paths:
           description: "ConflictError: application (with the same userId and positionId) already exists"
         "422":
           description: "SchemaError"
+  /applications/me:
+    get:
+      tags:
+      - "applications"
+      summary: "Get all applications of a user (TODO)"
+      parameters:
+      - name: "positionId"
+        in: path
+        description: id of position
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: successful
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Application"
   /auth/login:
     post:
       tags:
       - "auth"
-      summary: Login
+      summary: Login (DONE)
       produces:
       - "application/json"
       responses:
@@ -207,7 +248,7 @@ paths:
     post:
       tags:
       - "auth"
-      summary: Register a new user
+      summary: Register a new user (DONE)
       consumes:
       - "application/json"
       responses:
@@ -221,7 +262,7 @@ paths:
     get:
       tags:
       - "auth"
-      summary: Check if email is available
+      summary: Check if email is available (DONE)
       parameters:
       - name: "email"
         in: path
@@ -237,7 +278,13 @@ paths:
     get:
       tags:
       - "events"
-      description: get event
+      summary: get event (TODO)
+      parameters:
+      - name: "eventId"
+        in: path
+        description: id of event
+        required: true
+        type: integer
       responses:
         "200":
           description: success
@@ -249,19 +296,25 @@ paths:
     get:
       tags:
       - "organizations"
-      description: get organization
+      summary: get organization (TODO)
+      parameters:
+      - name: "organizationId"
+        in: path
+        description: id of organisation
+        required: true
+        type: integer
       responses:
         "200":
           description: success
           schema:
-            $ref: "#/definitions/Event"
+            $ref: "#/definitions/Organization"
         "404":
           description: "NotFoundError: Organization not found"
   /positions:
     get:
       tags:
       - "positions"
-      summary: Get positions
+      summary: Get positions (TODO - update)
       produces:
       - "application/json"
       parameters:
@@ -269,14 +322,43 @@ paths:
         in: query
         description: column to sort by
         required: false
-        type: "string"
+        type: string
         enum: [ 'applications' ]
       - name: "order"
         in: query
         description: sort order
         required: false
-        type: "string"
+        type: string
         enum: [ 'asc', 'desc' ]
+      - name: "limit"
+        in: query
+        description: limit
+        required: false
+        type: integer
+      - name: "offset"
+        in: query
+        description: offset
+        required: false
+        type: integer
+      - name: "gender"
+        in: query
+        description: gender
+        required: false
+        type: string
+      - name: "tags"
+        in: query
+        description: type of work
+        type: array
+        items:
+          type: string
+      - name: "dayfrom"
+        in: query
+        type: string
+        format: date-time
+      - name: "dayto"
+        in: query
+        type: string
+        format: date-time
       responses:
         "200":
           description: successful
@@ -288,13 +370,13 @@ paths:
     get:
       tags:
       - "positions"
-      summary: "Get position details"
+      summary: Get position with id (TODO)
       parameters:
       - name: "positionId"
         in: path
         description: id of position
         required: true
-        type: "string"
+        type: integer
       responses:
         "200":
           description: successful
@@ -302,12 +384,48 @@ paths:
             $ref: "#/definitions/Position"
         "404":
           description: "NotFoundError: Position not found"
-  /users/me:
+  /posts/me:
     get:
       tags:
-      - "users"
+      - "posts"
+      summary: "Get posts of a user (TODO)"
       responses:
         "200":
           description: successful
           schema:
-            $ref: "#/definitions/UserDetails"
+            type: array
+            items:
+              $ref: "#/definitions/Post"
+        "404":
+          description: "NotFoundError: Position not found"
+  /tags/search:
+    get:
+      tags:
+      - "tags"
+      summary: "Get tags (TODO)"
+      parameters:
+      - name: "q"
+        in: path
+        description: query
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: successful
+  /users/me:
+    get:
+      tags:
+      - "users"
+      summary: Get user info (TODO)
+      responses:
+        "200":
+          description: successful
+          schema:
+            $ref: "#/definitions/User"
+    post:
+      tags:
+      - "users"
+      summary: Let user update their info (low priority)
+      responses:
+        "200":
+          description: successful
