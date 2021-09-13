@@ -2,6 +2,7 @@ import { Application } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
+import { AuthorizedRequest } from "../../utils/express";
 
 import { prisma } from "../../utils";
 import {
@@ -33,6 +34,21 @@ export const getApplicationById = expressAsyncHandler(
     } catch (e) {
       next(e);
       return;
+    }
+  }
+);
+
+export const getApplicationsOfMe = expressAsyncHandler(
+  async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+    try {
+      const applications = await prisma.application.findMany({
+        where: {
+          userId: req.userId,
+        },
+      });
+      return res.status(200).json(applications);
+    } catch (e) {
+      return next(e);
     }
   }
 );
@@ -72,7 +88,6 @@ export const addApplication = expressAsyncHandler(
           "Application with the same userId and positionId already exists"
         )
       );
-      return;
     }
 
     try {
