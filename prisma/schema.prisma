@@ -19,7 +19,7 @@ model User {
   posts        Post[]
 }
 
-model Org {
+model Organization {
   id     Int     @id @default(autoincrement())
   name   String
   desc   String
@@ -30,16 +30,16 @@ model Org {
 }
 
 model Event {
-  id        Int        @id @default(autoincrement())
-  name      String
-  desc      String
-  location  String
-  startTime DateTime
-  endTime   DateTime
-  gallery   String[]
-  Org       Org        @relation(fields: [orgId], references: [id])
-  orgId     Int
-  positions Position[]
+  id             Int           @id @default(autoincrement())
+  name           String
+  desc           String
+  location       String
+  startTime      DateTime
+  endTime        DateTime
+  gallery        String[]
+  positions      Position[]
+  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId Int?
 }
 
 model Position {

@@ -12,7 +12,7 @@ function genUser(): Prisma.UserCreateInput {
   };
 }
 
-function genOrg(): Prisma.OrgCreateInput {
+function genOrganization(): Prisma.OrganizationCreateInput {
   return {
     name: faker.company.companyName(),
     desc: faker.lorem.paragraph(),
@@ -84,7 +84,7 @@ async function main() {
   }
 
   for (let i = 0; i < 12; i++) {
-    await prisma.org.create({ data: genOrg() });
+    await prisma.organization.create({ data: genOrganization() });
   }
 
   const users = await prisma.user.findMany();
