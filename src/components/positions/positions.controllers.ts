@@ -37,8 +37,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
     } else {
       try {
         const positions = await prisma.position.findMany({});
-        res.status(200).json(positions);
-        return;
+        return res.status(200).json(positions);
       } catch (e) {
         return next(e);
       }
@@ -86,8 +85,7 @@ export const getPositionById = expressAsyncHandler(
     const { error, value: id } = Joi.number().integer().validate(req.params.id);
 
     if (error) {
-      next(new BadRequestError(error.message));
-      return;
+      return next(new BadRequestError(error.message));
     }
 
     try {
@@ -95,14 +93,12 @@ export const getPositionById = expressAsyncHandler(
         where: { id },
       });
       if (position) {
-        res.status(200).json(position);
+        return res.status(200).json(position);
       } else {
-        next(new NotFoundError(`Position with id ${id} not found`));
-        return;
+        return next(new NotFoundError(`Position with id ${id} not found`));
       }
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
   }
 );

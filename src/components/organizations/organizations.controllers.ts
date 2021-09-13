@@ -4,18 +4,14 @@ import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
 
 import { prisma } from "../../utils";
-import {
-  NotFoundError,
-  BadRequestError,
-} from "../errors";
+import { NotFoundError, BadRequestError } from "../errors";
 
 export const getOrganizationById = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { error, value: id } = Joi.number().integer().validate(req.params.id);
 
     if (error) {
-      next(new BadRequestError(error.message));
-      return;
+      return next(new BadRequestError(error.message));
     }
 
     try {
@@ -23,14 +19,12 @@ export const getOrganizationById = expressAsyncHandler(
         where: { id },
       });
       if (organization) {
-        res.status(200).json(organization);
+        return res.status(200).json(organization);
       } else {
-        next(new NotFoundError(`Organization with id ${id} not found`));
-        return;
+        return next(new NotFoundError(`Organization with id ${id} not found`));
       }
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
   }
 );
