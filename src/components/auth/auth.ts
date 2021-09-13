@@ -1,39 +1,47 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 import jwt from "jsonwebtoken";
 
+import { AuthorizedRequest } from "../../utils/express";
+import { prisma } from "../../utils";
 import { AuthError } from "../errors";
 
 export const auth = expressAsyncHandler(
-  (req: Request, _res: Response, next: NextFunction) => {
+  async (req: AuthorizedRequest, _res: Response, next: NextFunction) => {
     if (!req.headers.authorization) {
-      next(new AuthError("Missing Authorization Header"));
-      return;
+      return next(new AuthError("Missing Authorization Header"));
     }
 
     const authHeader = req.headers.authorization;
-    const authMethod = authHeader.split(" ")[0];
-    const token = authHeader.split(" ")[1];
+    const [authMethod, token] = authHeader.split(" ");
 
     if (!authMethod || !token) {
-      next(new AuthError("Invalid Authorization Header"));
-      return;
+      return next(new AuthError("Invalid Authorization Header"));
     }
     if (authMethod !== "Bearer") {
-      next(new AuthError("Invalid Auth Method"));
-      return;
+      return next(new AuthError("Invalid Auth Method"));
     }
 
-    let tokenBody;
+    let decoded: any;
 
     try {
-      tokenBody = jwt.verify(token, "secret");
-      req.body.user = tokenBody;
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (e) {
-      next(new AuthError("Invalid Token"));
-      return;
+      return next(new AuthError("Invalid Token"));
     }
 
-    next();
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return next(new AuthError("User does not exist"));
+    }
+
+    // TODO: check decoded.iat against last password-change instance
+
+    req.userId = decoded.userId;
+    req.log.info(`User of id ${req.body.userId} authorized!`);
+    return next();
   }
 );

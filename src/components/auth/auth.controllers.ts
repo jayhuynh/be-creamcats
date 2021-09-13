@@ -25,7 +25,9 @@ export const login = expressAsyncHandler(
 
     try {
       if (await argon2.verify(user.password, password)) {
-        const token = jwt.sign({ userId: user.id }, "secret");
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+          expiresIn: process.env.JWT_EXPIRES_IN,
+        });
         return res.status(200).json({ accessToken: token });
       }
       return next(new AuthError("Invalid Password"));
@@ -65,10 +67,9 @@ export const register = expressAsyncHandler(
       },
     });
 
-    const token = jwt.sign(
-      { userId: user.id },
-      process.env.ACCESS_TOKEN_SECRET
-    );
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN,
+    });
 
     return res.status(200).json({ accessToken: token });
   }
