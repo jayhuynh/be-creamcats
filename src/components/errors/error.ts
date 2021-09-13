@@ -33,7 +33,7 @@ export class AuthError extends ApiError {
 
 /**
  * Try no retreive a non-existing object
- */
+ **/
 export class NotFoundError extends ApiError {
   constructor(message: string) {
     super({

@@ -1,5 +1,5 @@
 import faker from "faker";
-import { EventStatus, Position, Prisma, User } from "@prisma/client";
+import { Position, Prisma, User } from "@prisma/client";
 import { PrismaClient } from ".prisma/client";
 
 const prisma = new PrismaClient();
@@ -37,7 +37,6 @@ function genEvent() {
     startTime: startTime,
     endTime: endTime,
     gallery: Array(3).fill(faker.image.city),
-    status: EventStatus.ONGOING,
     positions: {
       create: Array.from({ length: 1 + faker.datatype.number(1) }, genPosition),
     },
