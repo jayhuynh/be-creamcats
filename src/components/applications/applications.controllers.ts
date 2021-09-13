@@ -24,7 +24,7 @@ export const getApplicationById = expressAsyncHandler(
         where: { id },
       });
       if (application) {
-        res.status(200).json(application);
+        return res.status(200).json(application);
       } else {
         return next(new NotFoundError(`Application with id ${id} not found`));
       }
