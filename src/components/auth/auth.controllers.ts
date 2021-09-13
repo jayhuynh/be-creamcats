@@ -20,20 +20,17 @@ export const login = expressAsyncHandler(
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      next(new NotFoundError("User not found"));
-      return;
+      return next(new NotFoundError("User not found"));
     }
 
     try {
       if (await argon2.verify(user.password, password)) {
         const token = jwt.sign({ userId: user.id }, "secret");
-        res.status(200).json({ accessToken: token });
+        return res.status(200).json({ accessToken: token });
       }
-      next(new AuthError("Invalid Password"));
-      return;
+      return next(new AuthError("Invalid Password"));
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
   }
 );
@@ -47,8 +44,7 @@ export const register = expressAsyncHandler(
     });
     const { error, value } = schema.validate(req.body);
     if (error) {
-      next(new SchemaError(error.message));
-      return;
+      return next(new SchemaError(error.message));
     }
 
     const { email, fullname, password } = value;
@@ -56,8 +52,7 @@ export const register = expressAsyncHandler(
     const result = await prisma.user.findUnique({ where: { email } });
 
     if (result) {
-      next(new ConflictError("User already exists"));
-      return;
+      return next(new ConflictError("User already exists"));
     }
 
     const hashedPwd = await argon2.hash(password);
@@ -75,7 +70,7 @@ export const register = expressAsyncHandler(
       process.env.ACCESS_TOKEN_SECRET
     );
 
-    res.status(200).json({ accessToken: token });
+    return res.status(200).json({ accessToken: token });
   }
 );
 
@@ -86,18 +81,16 @@ export const checkAvailableEmail = expressAsyncHandler(
       .validate(req.params.email);
 
     if (error) {
-      next(new BadRequestError(error.message));
-      return;
+      return next(new BadRequestError(error.message));
     }
 
     const result = await prisma.user.findUnique({ where: { email } });
 
     if (result) {
-      next(new ConflictError("Email has already been used"));
-      return;
+      return next(new ConflictError("Email has already been used"));
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: `Email ${email} is available!`,
     });
   }
