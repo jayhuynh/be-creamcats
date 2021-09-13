@@ -31,7 +31,9 @@ export class AuthError extends ApiError {
   }
 }
 
-// Example: find a user with a given email
+/**
+ * Try no retreive a non-existing object
+ **/
 export class NotFoundError extends ApiError {
   constructor(message: string) {
     super({

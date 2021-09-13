@@ -1,13 +1,13 @@
 swagger: "2.0"
 info:
-  description: "CreamCats Backend API Doc"
+  description: "CreamCats Backend API Doc. The database schema can be found at []()"
   version: "1.0.0"
   title: "CreamCats Backend API Doc"
 host: "localhost:6400"
 basePath: "/"
 schemes:
-- "https"
 - "http"
+- "https"
 tags:
 - name: "applications"
   description: "Applications"
@@ -19,137 +19,164 @@ tags:
   description: "Organization"
 - name: "positions"
   description: "Positions"
+- name: "posts"
+  description: "Posts"
+- name: "tags"
+  description: "Tags for recommendations"
 - name: "users"
   description: "Users"
 definitions:
   Application:
     properties:
       userId:
-        type: integer
-        description: id of the user
+        type: "integer"
+        description: "id of the user"
       positionId:
-        type: integer
-        description: id of the position
+        type: "integer"
+        description: "id of the position"
       notes:
-        type: string
-        description: notes from the user
+        type: "string"
+        description: "notes from the user"
+      status:
+        type: "string"
+        enum:
+        - "PENDING"
+        - "ACCEPTED"
+        - "REJECTED"
+        description: "status of the application"
   AuthSuccessResponse:
     properties:
       accessToken:
-        type: string
-        description: JWT token
+        type: "string"
+        description: "JWT token"
   ErrorResponse:
     properties:
       statusCode:
-        type: integer
-        description: status code
+        type: "integer"
+        description: "status code"
       message:
-        type: string
-        description: error message
+        type: "string"
+        description: "error message"
   Event:
     properties:
       id:
-        type: integer
-        description: id of the event
+        type: "integer"
+        description: "id of the event"
       name:
-        type: string
-        description: name of the event
+        type: "string"
+        description: "name of the event"
       desc:
-        type: string
-        description: description of the event
+        type: "string"
+        description: "description of the event"
       location:
-        type: string
-        description: location of the event
+        type: "string"
+        description: "location of the event"
       startTime:
-        type: string
-        format: date-time
-        description: start time of the event
+        type: "string"
+        format: "date-time"
+        description: "start time of the event"
       endTime:
-        type: string
-        format: date-time
-        description: end time of the event
+        type: "string"
+        format: "date-time"
+        description: "end time of the event"
       gallery:
-        type: array
+        type: "array"
         items:
-          type: string
-        description: gallery of the event
+          type: "string"
+        description: "gallery of the event"
       status:
-        type: string
+        type: "string"
         enum:
         - "ONGOING"
         - "PAST"
-  Org:
+  Organization:
     properties:
       id:
-        type: integer
-        description: id of the organisation
+        type: "integer"
+        description: "id of the organisation"
       name:
-        type: string
-        description: name of the organisation
+        type: "string"
+        description: "name of the organisation"
       desc:
-        type: string
-        description: description of the organisation
+        type: "string"
+        description: "description of the organisation"
   Position:
     properties:
       id:
-        type: integer
-        description: id of the position
+        type: "integer"
+        description: "id of the position"
       name:
-        type: string
-        description: name of the position
+        type: "string"
+        description: "name of the position"
       desc:
-        type: string
-        description: description for the position
+        type: "string"
+        description: "description for the position"
       requirements:
-        type: string
-        description: requirements for the position
+        type: "string"
+        description: "requirements for the position"
       typesOfWork:
-        type: array
+        type: "array"
         items:
-          type: string
-        description: types of work of the position
+          type: "string"
+        description: "types of work of the position"
       timeCreated:
-        type: string
+        type: "string"
         format: date-time
-        description: when the position is created
+        description: "when the position is created"
       thumbnail:
-        type: string
-        description: the thumbnail of the position
+        type: "string"
+        description: "the thumbnail of the position"
   PositionDetails:
     properties:
       position:
         $ref: "#/definitions/Position"
+  Post:
+    properties:
+      id:
+        type: "integer"
+      title:
+        type: "string"
+      thumbnail:
+        type: "string"
+      content:
+        type: "string"
+  Tag:
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
   User:
     properties:
       id:
-        type: integer
-        description: id of the user
+        type: "integer"
+        description: "id of the user"
       email:
-        type: string
-        description: email of the user
+        type: "string"
+        description: "email of the user"
       fullname:
-        type: string
-        description: fullname of the user
+        type: "string"
+        description: "fullname of the user"
       password:
-        type: string
-        description: password of the user
+        type: "string"
+        description: "password of the user"
   UserDetails:
     properties:
       id:
-        type: integer
-        description: id of the user
+        type: "integer"
+        description: "id of the user"
       email:
-        type: string
-        description: email of the user
+        type: "string"
+        description: "email of the user"
       fullname:
-        type: string
-        description: fullname of the user
+        type: "string"
+        description: "fullname of the user"
 paths:
   /applications:
     post:
       tags:
       - "applications"
-      summary: Submit application
+      summary: "Submit application (DONE)"
       produces:
       - "application/json"
       parameters:
@@ -161,7 +188,7 @@ paths:
           $ref: "#/definitions/Application"
       responses:
         "200":
-          description: successful
+          description: "successful"
         "409":
           description: "ConflictError: application (with the same userId and positionId) already exists"
         "422":
@@ -170,28 +197,40 @@ paths:
     get:
       tags:
       - "applications"
-      summary: Get application by id
+      summary: "Get application by id (DONE)"
       produces:
       - "application/json"
       parameters:
-      - in: "body"
-        name: "body"
-        description: "Created user object"
+      - name: "applicationId"
+        in: "path"
+        type: "integer"
         required: true
-        schema:
-          $ref: "#/definitions/Application"
       responses:
         "200":
-          description: successful
+          description: "successful"
+          schema:
+            $ref: "#/definitions/Application"
         "409":
           description: "ConflictError: application (with the same userId and positionId) already exists"
         "422":
           description: "SchemaError"
+  /applications/me:
+    get:
+      tags:
+      - "applications"
+      summary: "Get all applications of a user (TODO)"
+      responses:
+        "200":
+          description: "successful"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Application"
   /auth/login:
     post:
       tags:
       - "auth"
-      summary: Login
+      summary: "Login (DONE)"
       produces:
       - "application/json"
       responses:
@@ -207,12 +246,12 @@ paths:
     post:
       tags:
       - "auth"
-      summary: Register a new user
+      summary: "Register a new user (DONE)"
       consumes:
       - "application/json"
       responses:
         "200":
-          description: success
+          description: "successful"
           schema:
             $ref: "#/definitions/AuthSuccessResponse"
         "409":
@@ -221,11 +260,11 @@ paths:
     get:
       tags:
       - "auth"
-      summary: Check if email is available
+      summary: "Check if email is available (DONE)"
       parameters:
       - name: "email"
-        in: path
-        description: email address
+        in: "path"
+        description: "email address"
         required: true
         type: "string"
       responses:
@@ -237,10 +276,16 @@ paths:
     get:
       tags:
       - "events"
-      description: get event
+      summary: "get event (TODO)"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "id of event"
+        required: true
+        type: "integer"
       responses:
         "200":
-          description: success
+          description: "successful"
           schema:
             $ref: "#/definitions/Event"
         "404":
@@ -249,65 +294,140 @@ paths:
     get:
       tags:
       - "organizations"
-      description: get organization
+      summary: "get organization (TODO)"
+      parameters:
+      - name: "organizationId"
+        in: "path"
+        description: "id of organisation"
+        required: true
+        type: "integer"
       responses:
         "200":
-          description: success
+          description: "successful"
           schema:
-            $ref: "#/definitions/Event"
+            $ref: "#/definitions/Organization"
         "404":
           description: "NotFoundError: Organization not found"
   /positions:
     get:
       tags:
       - "positions"
-      summary: Get positions
+      summary: "Get positions (TODO - update)"
       produces:
       - "application/json"
       parameters:
       - name: "sort"
-        in: query
-        description: column to sort by
+        in: "query"
+        description: "column to sort by"
         required: false
         type: "string"
         enum: [ 'applications' ]
       - name: "order"
-        in: query
-        description: sort order
+        in: "query"
+        description: "sort order"
         required: false
         type: "string"
         enum: [ 'asc', 'desc' ]
+      - name: "limit"
+        in: "query"
+        description: "limit"
+        required: false
+        type: "integer"
+      - name: "offset"
+        in: "query"
+        description: "offset"
+        required: false
+        type: "integer"
+      - name: "gender"
+        in: "query"
+        description: "gender"
+        required: false
+        type: "string"
+      - name: "tags"
+        in: "query"
+        description: "type of work"
+        type: "array"
+        items:
+          type: "string"
+      - name: "dayfrom"
+        in: "query"
+        type: "string"
+        format: "date-time"
+      - name: "dayto"
+        in: "query"
+        type: "string"
+        format: "date-time"
       responses:
         "200":
-          description: successful
+          description: "successful"
           schema:
-            type: array
+            type: "array"
             items:
               $ref: "#/definitions/Position"
   /positions/{positionId}:
     get:
       tags:
       - "positions"
-      summary: "Get position details"
+      summary: "Get position with id (TODO)"
       parameters:
       - name: "positionId"
-        in: path
-        description: id of position
+        in: "path"
+        description: "id of position"
         required: true
-        type: "string"
+        type: "integer"
       responses:
         "200":
-          description: successful
+          description: "successful"
           schema:
             $ref: "#/definitions/Position"
         "404":
           description: "NotFoundError: Position not found"
+  /posts/me:
+    get:
+      tags:
+      - "posts"
+      summary: "Get posts of a user (TODO)"
+      responses:
+        "200":
+          description: "successful"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Post"
+        "404":
+          description: "NotFoundError: Position not found"
+  /tags/search:
+    get:
+      tags:
+      - "tags"
+      summary: "Get tags (TODO)"
+      parameters:
+      - name: "q"
+        in: "query"
+        description: "tag search query"
+        required: true
+        type: "string"
+      responses:
+        "200":
+          description: "successful"
+          schema:
+            type: "array"
+            items:
+              type: "string"
   /users/me:
     get:
       tags:
       - "users"
+      summary: "Get user info (TODO)"
       responses:
         "200":
-          description: successful
+          description: "successful"
           schema:
-            $ref: "#/definitions/UserDetails"
+            $ref: "#/definitions/User"
+    post:
+      tags:
+      - "users"
+      summary: "Let user update their info (low priority)"
+      responses:
+        "200":
+          description: "successful"
