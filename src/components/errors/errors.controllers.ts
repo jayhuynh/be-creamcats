@@ -1,7 +1,7 @@
 import express from "express";
 import { ApiError } from "./error";
 
-export const notFoundHandler = (
+export const routeNotFoundHandler = (
   _req: express.Request,
   _res: express.Response,
   next: express.NextFunction
@@ -10,7 +10,7 @@ export const notFoundHandler = (
     statusCode: 404,
     message: "Route not found",
   });
-  next(err);
+  return next(err);
 };
 
 export const apiErrorHandler = (
@@ -20,7 +20,7 @@ export const apiErrorHandler = (
   _next: express.NextFunction
 ) => {
   const statusCode = err instanceof ApiError ? err.statusCode : 500;
-  res.status(statusCode).json({
+  return res.status(statusCode).json({
     message: err.message,
   });
 };

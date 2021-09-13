@@ -16,8 +16,7 @@ export const getApplicationById = expressAsyncHandler(
     const { error, value: id } = Joi.number().integer().validate(req.params.id);
 
     if (error) {
-      next(new BadRequestError(error.message));
-      return;
+      return next(new BadRequestError(error.message));
     }
 
     try {
@@ -27,12 +26,10 @@ export const getApplicationById = expressAsyncHandler(
       if (application) {
         res.status(200).json(application);
       } else {
-        next(new NotFoundError(`Application with id ${id} not found`));
-        return;
+        return next(new NotFoundError(`Application with id ${id} not found`));
       }
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
   }
 );
@@ -46,8 +43,7 @@ export const addApplication = expressAsyncHandler(
     });
     const { error, value } = schema.validate(req.body);
     if (error) {
-      next(new SchemaError(error.message));
-      return;
+      return next(new SchemaError(error.message));
     }
 
     const { userId, positionId, notes } = value;
@@ -63,11 +59,10 @@ export const addApplication = expressAsyncHandler(
         },
       });
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
     if (existingApplication) {
-      next(
+      return next(
         new ConflictError(
           "Application with the same userId and positionId already exists"
         )
@@ -84,11 +79,10 @@ export const addApplication = expressAsyncHandler(
         },
       });
     } catch (e) {
-      next(e);
-      return;
+      return next(e);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Application successfully added",
     });
   }

@@ -1,5 +1,5 @@
 import { Position } from "@prisma/client";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
 
@@ -7,22 +7,21 @@ import { BadRequestError } from "../errors";
 import { prisma } from "../../utils";
 import { Dict } from "../../utils/types";
 
-export const getPositions = expressAsyncHandler(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Position[]> => {
+export const getPositions: RequestHandler = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     const querySchema = Joi.object({
       sort: Joi.string().valid("applications"),
       order: Joi.string().valid("asc", "desc"),
+      gender: Joi.string().valid("male", "female"),
+      typesOfWork: Joi.array(),
+      dayfrom: Joi.date(),
+      dayto: Joi.date(),
     }).with("sort", "order");
 
     const { error, value: query } = querySchema.validate(req.query);
 
     if (error) {
-      next(new BadRequestError(error.message));
-      return;
+      return next(new BadRequestError(error.message));
     }
 
     if (query.sort) {
@@ -31,11 +30,9 @@ export const getPositions = expressAsyncHandler(
           query.sort,
           query.order
         );
-        res.status(200).json(sortedPositions);
-        return;
+        return res.status(200).json(sortedPositions);
       } catch (e) {
-        next(e);
-        return;
+        return next(e);
       }
     } else {
       try {
@@ -43,8 +40,7 @@ export const getPositions = expressAsyncHandler(
         res.status(200).json(positions);
         return;
       } catch (e) {
-        next(e);
-        return;
+        return next(e);
       }
     }
   }
