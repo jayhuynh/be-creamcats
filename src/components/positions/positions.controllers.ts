@@ -16,6 +16,8 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       typesOfWork: Joi.array(),
       dayfrom: Joi.date(),
       dayto: Joi.date(),
+      limit: Joi.number().integer(),
+      offset: Joi.number().integer(),
     }).with("sort", "order");
 
     const { error, value: query } = querySchema.validate(req.query);
@@ -36,7 +38,24 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       }
     } else {
       try {
-        const positions = await prisma.position.findMany({});
+        const positions = await prisma.position.findMany({
+          where: {
+            gender: {
+              equals: query.gender,
+              mode: "insensitive",
+            },
+            Event: {
+              startTime: {
+                lte: query.dayfrom,
+              },
+              endTime: {
+                gte: query.dayto,
+              },
+            },
+          },
+          skip: query.offset,
+          take: query.limit,
+        });
         return res.status(200).json(positions);
       } catch (e) {
         return next(e);
