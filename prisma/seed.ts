@@ -1,10 +1,11 @@
 import faker from "faker";
+import fs from "fs";
 import { Position, Prisma, User } from "@prisma/client";
 import { PrismaClient, Gender } from ".prisma/client";
 
 const prisma = new PrismaClient();
 
-function genUser(): Prisma.UserCreateInput {
+const genUser = (): Prisma.UserCreateInput => {
   return {
     email: faker.internet.email(),
     fullname: faker.name.findName(),
@@ -13,9 +14,9 @@ function genUser(): Prisma.UserCreateInput {
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
   };
-}
+};
 
-function genOrganization(): Prisma.OrganizationCreateInput {
+const genOrganization = (): Prisma.OrganizationCreateInput => {
   return {
     name: faker.company.companyName(),
     desc: faker.lorem.paragraph(),
@@ -26,9 +27,9 @@ function genOrganization(): Prisma.OrganizationCreateInput {
       create: Array.from({ length: 1 + faker.datatype.number(1) }, genEvent),
     },
   };
-}
+};
 
-function genEvent() {
+const genEvent = () => {
   const startTime = faker.date.soon();
   const endTime = new Date();
   endTime.setDate(startTime.getDate() + faker.datatype.number(2));
@@ -44,9 +45,9 @@ function genEvent() {
       create: Array.from({ length: 1 + faker.datatype.number(1) }, genPosition),
     },
   };
-}
+};
 
-function genPosition() {
+const genPosition = () => {
   return {
     name: faker.name.jobTitle(),
     desc: faker.lorem.paragraph(),
@@ -57,9 +58,9 @@ function genPosition() {
     ),
     thumbnail: faker.image.city(),
   };
-}
+};
 
-async function genApplication(users: User[], positions: Position[]) {
+const genApplication = async (users: User[], positions: Position[]) => {
   const user = faker.random.arrayElement(users);
   const position = faker.random.arrayElement(positions);
 
@@ -79,9 +80,22 @@ async function genApplication(users: User[], positions: Position[]) {
     positionId: position.id,
     notes: faker.lorem.sentence(),
   };
-}
+};
 
-async function main() {
+const genTags = async () => {
+  const tags = JSON.parse(
+    fs.readFileSync("prisma/seed-data/tags.json", "utf8")
+  );
+  await prisma.tag.createMany({
+    data: tags.map((tag: String) => {
+      return {
+        name: tag,
+      };
+    }),
+  });
+};
+
+const main = async () => {
   for (let i = 0; i < 30; i++) {
     await prisma.user.create({ data: genUser() });
   }
@@ -106,8 +120,10 @@ async function main() {
     }
   }
 
-  console.log("Seeding finished!");
-}
+  await genTags();
+
+  console.log("Seeding finished");
+};
 
 main()
   .catch((e) => {
