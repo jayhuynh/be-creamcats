@@ -47,6 +47,14 @@ $ npm run api-doc
 
 This should open the doc at `http://localhost:6400/api-doc`.
 
+## Known issues
+
+You may encounter `Permission denied` for directories in `prisma/migrations`, especially when creating new migrations yourself. My theory is that these directories are created inside of the container, and a user on the host container do not have write permission to them by default. To fix this, simply run:
+
+```
+$ chmod +rw prisma/migrations
+```
+
 
 ## Documentation
 
