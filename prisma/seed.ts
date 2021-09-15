@@ -1,6 +1,6 @@
 import faker from "faker";
 import { Position, Prisma, User } from "@prisma/client";
-import { PrismaClient } from ".prisma/client";
+import { PrismaClient, Gender } from ".prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +9,9 @@ function genUser(): Prisma.UserCreateInput {
     email: faker.internet.email(),
     fullname: faker.name.findName(),
     password: faker.internet.password(),
+    gender: faker.random.arrayElement(Object.values(Gender)),
+    age: faker.datatype.number({ min: 18, max: 35 }),
+    profilePic: faker.image.avatar(),
   };
 }
 
