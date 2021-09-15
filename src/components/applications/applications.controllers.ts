@@ -50,6 +50,23 @@ export const getApplicationsOfMe = expressAsyncHandler(
   }
 );
 
+export const getApplicationCountOfMe = expressAsyncHandler(
+  async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+    try {
+      const applications = await prisma.application.findMany({
+        where: {
+          userId: req.userId,
+        },
+      });
+      return res.status(200).json({
+        count: applications.length,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
+
 export const addApplication = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const schema = Joi.object({
