@@ -49,11 +49,15 @@ This should open the doc at `http://localhost:6400/api-doc`.
 
 ## Known issues
 
-You may encounter `Permission denied` for directories in `prisma/migrations`, especially when creating new migrations yourself. My theory is that these directories are created inside of the container, and a user on the host container do not have write permission to them by default. To fix this, simply run:
+### Permission denied for `prisma/migrations` directories
+
+You may encounter `Permission denied` for directories in `prisma/migrations`, especially when creating new migrations yourself. My theory is that these directories are created inside of the container, and a user on the host container do not have write permission to them by default. One way (not necessary the best way) to fix this, for now, is:
 
 ```
-$ chmod +rw prisma/migrations
+$ sudo chmod -R +rw prisma/migrations
 ```
+
+(If anyone knows any better, let me know).
 
 
 ## Documentation
