@@ -36,7 +36,7 @@ app.use("/events", eventsRouter);
 app.use("/organizations", organizationsRouter);
 app.use("/positions", positionsRouter);
 app.use("/tags", tagsRouter);
-app.user("/posts", postsRouter);
+app.use("/posts", postsRouter);
 
 // Error Handling
 app.use("*", routeNotFoundHandler); // catch all invalid routes
