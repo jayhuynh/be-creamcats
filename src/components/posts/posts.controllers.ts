@@ -8,7 +8,7 @@ import { prisma } from "../../utils";
 export const getPostsOfMe = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     try {
-      const posts = await prisma.post.findMany({
+      const posts: Post[] = await prisma.post.findMany({
         where: {
           userId: req.userId,
         },
