@@ -354,7 +354,7 @@ paths:
     get:
       tags:
       - "positions"
-      summary: "Get positions (TODO - update)"
+      summary: "Get positions (DONE-ish)"
       parameters:
       - name: "sort"
         in: "query"
@@ -388,26 +388,59 @@ paths:
         required: false
         schema:
           type: "string"
+          enum:
+          - "male"
+          - "female"
       - name: "tags"
         in: "query"
-        description: "type of work"
+        description: "tags"
+        required: false
         schema:
           type: "array"
           items:
             type: "string"
       - name: "dayfrom"
         in: "query"
+        required: false
         schema:
           type: "string"
           format: "date-time"
       - name: "dayto"
         in: "query"
+        required: false
         schema:
           type: "string"
           format: "date-time"
+      - name: "lng"
+        in: "query"
+        required: false
+        description: "longitude - must go together with lat and must not go together with address"
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "lat"
+        in: "query"
+        required: false
+        description: "latitude - must go together with lng and must not go together with address"
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "addresss"
+        required: false
+        in: "query"
+        description: "an address - use either this, or lng and lat"
+        schema:
+          type: "string"
+      - name: "within"
+        in: "query"
+        required: false
+        description: "(in metres) the range within which positions are searched"
+        schema:
+          type: "number"
+          format: "integer"
       responses:
         "200":
-          description: "successful"
+          description: "Successful. If location data is provided, return a list of positions sorted by the distance from the specified location"
           content:
             "application/json":
               schema:
@@ -439,7 +472,7 @@ paths:
     get:
       tags:
       - "posts"
-      summary: "Get posts of a user (TODO)"
+      summary: "Get posts of a user (DONE)"
       responses:
         "200":
           description: "successful"
@@ -455,7 +488,7 @@ paths:
     get:
       tags:
       - "tags"
-      summary: "Get tags (TODO)"
+      summary: "Get tags (DONE)"
       parameters:
       - name: "q"
         in: "query"
@@ -476,7 +509,7 @@ paths:
     get:
       tags:
       - "users"
-      summary: "Get user info (TODO)"
+      summary: "Get user info (DONE)"
       responses:
         "200":
           description: "successful"
