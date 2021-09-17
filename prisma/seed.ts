@@ -44,23 +44,6 @@ const genPost = (): Prisma.PostCreateInput => {
   };
 };
 
-const genOrganizationRandom = (): Prisma.OrganizationCreateInput => {
-  return {
-    name: faker.company.companyName(),
-    desc: faker.lorem.paragraph(),
-    addr: faker.address.streetAddress(),
-    email: faker.internet.email(),
-    phone: faker.phone.phoneNumber(),
-    events: {
-      create: genArray<Prisma.EventCreateInput>({
-        minLen: 1,
-        maxLen: 2,
-        f: genEventRandom,
-      }),
-    },
-  };
-};
-
 const genOrganizations = async () => {
   const data = JSON.parse(
     fs.readFileSync("prisma/seed-data/data.json", "utf8")
@@ -119,40 +102,6 @@ const genOrganizations = async () => {
   for (const { organization } of data) {
     await prisma.organization.create({ data: genOrganization(organization) });
   }
-};
-
-const genEventRandom = (): Prisma.EventCreateInput => {
-  const startTime = faker.date.soon();
-  const endTime = new Date();
-  endTime.setDate(startTime.getDate() + faker.datatype.number(2));
-
-  return {
-    name: faker.company.catchPhrase(),
-    desc: faker.lorem.paragraph(),
-    location: faker.address.streetAddress(),
-    startTime: startTime,
-    endTime: endTime,
-    gallery: Array(3).fill(faker.image.city),
-    positions: {
-      create: Array.from(
-        { length: faker.datatype.number({ min: 1, max: 2 }) },
-        genPositionRandom
-      ),
-    },
-  };
-};
-
-const genPositionRandom = () => {
-  return {
-    name: faker.name.jobTitle(),
-    desc: faker.lorem.paragraph(),
-    requirements: faker.lorem.paragraph(),
-    typesOfWork: Array.from(
-      { length: 1 + faker.datatype.number(1) },
-      faker.name.jobType
-    ),
-    thumbnail: faker.image.city(),
-  };
 };
 
 const genApplication = async (users: User[], positions: Position[]) => {
@@ -214,11 +163,23 @@ const genApplications = async () => {
   }
 };
 
+const genGeography = async () => {
+  const addresses = JSON.parse(
+    fs.readFileSync("prisma/seed-data/addresses.json", "utf8")
+  );
+
+  for (const addr of addresses) {
+    const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
+    await prisma.$executeRaw(query);
+  }
+};
+
 const main = async () => {
   await genUsers();
   await genOrganizations();
   await genApplications();
   await genTags();
+  await genGeography();
   console.log("Seeding finished");
 };
 
