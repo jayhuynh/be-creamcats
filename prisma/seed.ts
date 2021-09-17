@@ -1,10 +1,24 @@
 import faker from "faker";
+import fs from "fs";
 import { Position, Prisma, User } from "@prisma/client";
 import { PrismaClient, Gender } from ".prisma/client";
 
 const prisma = new PrismaClient();
 
-function genUser(): Prisma.UserCreateInput {
+interface ArrayGenInput<T> {
+  minLen: number;
+  maxLen: number;
+  f: () => T;
+}
+
+const genArray = <T>(input: ArrayGenInput<T>): T[] => {
+  return Array.from(
+    { length: faker.datatype.number({ min: input.minLen, max: input.maxLen }) },
+    input.f
+  );
+};
+
+const genUser = (): Prisma.UserCreateInput => {
   return {
     email: faker.internet.email(),
     fullname: faker.name.findName(),
@@ -12,10 +26,25 @@ function genUser(): Prisma.UserCreateInput {
     gender: faker.random.arrayElement(Object.values(Gender)),
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
+    posts: {
+      create: genArray<Prisma.PostCreateInput>({
+        minLen: 1,
+        maxLen: 2,
+        f: genPost,
+      }),
+    },
   };
-}
+};
 
-function genOrganization(): Prisma.OrganizationCreateInput {
+const genPost = (): Prisma.PostCreateInput => {
+  return {
+    title: faker.lorem.words(faker.datatype.number({ min: 3, max: 5 })),
+    thumbnail: faker.image.city(),
+    content: faker.lorem.paragraph(),
+  };
+};
+
+const genOrganization = (): Prisma.OrganizationCreateInput => {
   return {
     name: faker.company.companyName(),
     desc: faker.lorem.paragraph(),
@@ -23,12 +52,16 @@ function genOrganization(): Prisma.OrganizationCreateInput {
     email: faker.internet.email(),
     phone: faker.phone.phoneNumber(),
     events: {
-      create: Array.from({ length: 1 + faker.datatype.number(1) }, genEvent),
+      create: genArray<Prisma.EventCreateInput>({
+        minLen: 1,
+        maxLen: 2,
+        f: genEvent,
+      }),
     },
   };
-}
+};
 
-function genEvent() {
+const genEvent = (): Prisma.EventCreateInput => {
   const startTime = faker.date.soon();
   const endTime = new Date();
   endTime.setDate(startTime.getDate() + faker.datatype.number(2));
@@ -41,12 +74,15 @@ function genEvent() {
     endTime: endTime,
     gallery: Array(3).fill(faker.image.city),
     positions: {
-      create: Array.from({ length: 1 + faker.datatype.number(1) }, genPosition),
+      create: Array.from(
+        { length: faker.datatype.number({ min: 1, max: 2 }) },
+        genPosition
+      ),
     },
   };
-}
+};
 
-function genPosition() {
+const genPosition = () => {
   return {
     name: faker.name.jobTitle(),
     desc: faker.lorem.paragraph(),
@@ -57,9 +93,9 @@ function genPosition() {
     ),
     thumbnail: faker.image.city(),
   };
-}
+};
 
-async function genApplication(users: User[], positions: Position[]) {
+const genApplication = async (users: User[], positions: Position[]) => {
   const user = faker.random.arrayElement(users);
   const position = faker.random.arrayElement(positions);
 
@@ -79,9 +115,22 @@ async function genApplication(users: User[], positions: Position[]) {
     positionId: position.id,
     notes: faker.lorem.sentence(),
   };
-}
+};
 
-async function main() {
+const genTags = async () => {
+  const tags = JSON.parse(
+    fs.readFileSync("prisma/seed-data/tags.json", "utf8")
+  );
+  await prisma.tag.createMany({
+    data: tags.map((tag: String) => {
+      return {
+        name: tag,
+      };
+    }),
+  });
+};
+
+const main = async () => {
   for (let i = 0; i < 30; i++) {
     await prisma.user.create({ data: genUser() });
   }
@@ -106,8 +155,10 @@ async function main() {
     }
   }
 
-  console.log("Seeding finished!");
-}
+  await genTags();
+
+  console.log("Seeding finished");
+};
 
 main()
   .catch((e) => {
