@@ -46,7 +46,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
     }
 
     const lng = query.lng || address.lng || null;
-    const lat = query.lng || address.lat || null;
+    const lat = query.lat || address.lat || null;
 
     if (query.sort) {
       try {
@@ -69,10 +69,10 @@ export const getPositions: RequestHandler = expressAsyncHandler(
           sqlQuery += `AND "Position"."gender" ilike ${query.gender}`;
         }
         if (query.dayfrom) {
-          sqlQuery += `AND "Event"."startTime" <= ${query.dayfrom}`;
+          sqlQuery += `AND "Event"."startTime" >= ${query.dayfrom}`;
         }
         if (query.dayto) {
-          sqlQuery += `AND "Event"."endTime" <= ${query.dayfrom}`;
+          sqlQuery += `AND "Event"."endTime" <= ${query.dayto}`;
         }
         if (query.tags && query.tags.length) {
           sqlQuery += `
