@@ -59,7 +59,6 @@ export const getPositions: RequestHandler = expressAsyncHandler(
         return next(e);
       }
     } else {
-      console.log(`lng = ${lng}, lat = ${lat}`);
       try {
         let sqlQuery = `
           SELECT "Position".*, "Event".location
