@@ -32,15 +32,16 @@ model Organization {
 }
 
 model Event {
-  id             Int           @id @default(autoincrement())
+  id             Int                       @id @default(autoincrement())
   name           String
   desc           String
-  location       String
+  gallery        String[]
   startTime      DateTime
   endTime        DateTime
-  gallery        String[]
+  location       String
+  coor           Unsupported("geography")?
   positions      Position[]
-  Organization   Organization? @relation(fields: [organizationId], references: [id])
+  Organization   Organization?             @relation(fields: [organizationId], references: [id])
   organizationId Int?
 }
 

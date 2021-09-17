@@ -20,7 +20,9 @@ services:
 
   db:
     container_name: "${DB_CONT_NAME}"
-    image: postgres:13-alpine
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "${DB_HOST_PORT}:${DB_CONT_PORT}"
