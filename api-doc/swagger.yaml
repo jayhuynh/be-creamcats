@@ -484,11 +484,25 @@ paths:
                   $ref: "#/components/schemas/Post"
         "404":
           description: "NotFoundError: Position not found"
+  /tags:
+    get:
+      tags:
+      - "tags"
+      summary: "Get all tags (DONE)"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: "array"
+                items:
+                  type: "string"
   /tags/search:
     get:
       tags:
       - "tags"
-      summary: "Get tags (DONE)"
+      summary: "Search for tags matching the query (DONE)"
       parameters:
       - name: "q"
         in: "query"

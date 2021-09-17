@@ -1,12 +1,20 @@
 import Joi from "joi";
-import { NextFunction, Response } from "express";
+import { Request, NextFunction, Response } from "express";
 import expressAsyncHandler from "express-async-handler";
 
-import { AuthorizedRequest, prisma } from "../../utils";
+import { prisma } from "../../utils";
 import { BadRequestError } from "../errors";
 
+export const getTags = expressAsyncHandler(
+  async (_req: Request, res: Response) => {
+    const tags = await prisma.tag.findMany({});
+    const tagNames = tags.map((tag) => tag.name);
+    res.status(200).json(tagNames);
+  }
+);
+
 export const searchTag = expressAsyncHandler(
-  async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     console.log(`q = ${req.query.q}`);
     const querySchema = Joi.object({
       q: Joi.string().required(),
