@@ -50,7 +50,6 @@ model Position {
   desc         String
   requirements String
   gender       String?
-  typesOfWork  String[]
   timeCreated  DateTime      @updatedAt
   thumbnail    String
   Event        Event         @relation(fields: [eventId], references: [id])
