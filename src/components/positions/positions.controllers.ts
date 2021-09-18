@@ -47,6 +47,10 @@ export const getPositions: RequestHandler = expressAsyncHandler(
 
     const lng = query.lng || address.lng || null;
     const lat = query.lat || address.lat || null;
+    const dayfrom = query.dayfrom
+      ? new Date(query.dayfrom).toISOString()
+      : undefined;
+    const dayto = query.dayto ? new Date(query.dayto).toISOString() : undefined;
 
     if (query.sort) {
       try {
@@ -66,13 +70,13 @@ export const getPositions: RequestHandler = expressAsyncHandler(
           WHERE "Position"."eventId" = "Event"."id"
         `;
         if (query.gender) {
-          sqlQuery += `AND "Position"."gender" ilike ${query.gender}`;
+          sqlQuery += `AND "Position"."gender" ilike '${query.gender}'`;
         }
         if (query.dayfrom) {
-          sqlQuery += `AND "Event"."startTime" >= ${query.dayfrom}`;
+          sqlQuery += `AND "Event"."startTime" >= '${dayfrom}'`;
         }
         if (query.dayto) {
-          sqlQuery += `AND "Event"."endTime" <= ${query.dayto}`;
+          sqlQuery += `AND "Event"."endTime" <= '${dayto}'`;
         }
         if (query.tags && query.tags.length) {
           sqlQuery += `
