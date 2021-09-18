@@ -54,6 +54,11 @@ const genOrganizations = async () => {
       name: position.name,
       desc: faker.lorem.paragraph(),
       requirements: faker.lorem.paragraph(),
+      gender: faker.random.arrayElement([
+        Gender.MALE,
+        Gender.FEMALE,
+        undefined,
+      ]),
       tags: {
         create: position.tags.map((tag: any) => {
           return {
