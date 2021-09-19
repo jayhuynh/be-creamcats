@@ -63,23 +63,22 @@ export const getPositions: RequestHandler = expressAsyncHandler(
         return next(e);
       }
     } else {
-      try {
-        let sqlQuery = `
+      let sqlQuery = `
           SELECT "Position".*, "Event".location
           FROM "Position", "Event"
           WHERE "Position"."eventId" = "Event"."id"
         `;
-        if (query.gender) {
-          sqlQuery += `AND "Position"."gender" ilike '${query.gender}'`;
-        }
-        if (query.dayfrom) {
-          sqlQuery += `AND "Event"."startTime" >= '${dayfrom}'`;
-        }
-        if (query.dayto) {
-          sqlQuery += `AND "Event"."endTime" <= '${dayto}'`;
-        }
-        if (query.tags && query.tags.length) {
-          sqlQuery += `
+      if (query.gender) {
+        sqlQuery += `AND "Position"."gender" ilike '${query.gender}'`;
+      }
+      if (query.dayfrom) {
+        sqlQuery += `AND "Event"."startTime" >= '${dayfrom}'`;
+      }
+      if (query.dayto) {
+        sqlQuery += `AND "Event"."endTime" <= '${dayto}'`;
+      }
+      if (query.tags && query.tags.length) {
+        sqlQuery += `
             AND "Position"."id" IN(
               SELECT "Position"."id"
               FROM "Position", "Tag", "_PositionToTag"
@@ -87,30 +86,32 @@ export const getPositions: RequestHandler = expressAsyncHandler(
               AND "_PositionToTag"."B" = "Tag"."id"
               AND (
             `;
-          for (let i = 0; i < query.tags.length; i++) {
-            if (i > 0) sqlQuery += " OR ";
-            sqlQuery += `"Tag"."name" = '${query.tags[i]}'`;
-          }
-          sqlQuery += `)
-            GROUP BY "Position"."id"
-            HAVING COUNT("Position"."id") = ${query.tags.length}
-          `;
-          sqlQuery += `)`;
+        for (let i = 0; i < query.tags.length; i++) {
+          if (i > 0) sqlQuery += " OR ";
+          sqlQuery += `"Tag"."name" = '${query.tags[i]}'`;
         }
+        sqlQuery += `)
+            GROUP BY "Position"."id"
+            HAVING COUNT("Position"."id") > 0
+          `;
+        sqlQuery += `)`;
+      }
 
-        if (query.address) {
-          sqlQuery += `
+      if (query.address) {
+        sqlQuery += `
             AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
             ORDER BY
             "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
           `;
-        }
-        if (query.limit) {
-          sqlQuery += `LIMIT ${query.limit}`;
-        }
-        if (query.offset) {
-          sqlQuery += `OFFSET ${query.offset}`;
-        }
+      }
+      if (query.limit) {
+        sqlQuery += `LIMIT ${query.limit}`;
+      }
+      if (query.offset) {
+        sqlQuery += `OFFSET ${query.offset}`;
+      }
+
+      try {
         const result = await prisma.$queryRaw(sqlQuery);
         return res.status(200).json(result);
       } catch (e) {
