@@ -444,9 +444,15 @@ paths:
           content:
             "application/json":
               schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/Position"
+                type: "object"
+                properties:
+                  total:
+                    type: "number"
+                    format: "integer"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/Position"
   /positions/{positionId}:
     get:
       tags:

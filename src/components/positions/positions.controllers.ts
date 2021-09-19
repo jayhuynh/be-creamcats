@@ -63,56 +63,79 @@ export const getPositions: RequestHandler = expressAsyncHandler(
         return next(e);
       }
     } else {
-      let sqlQuery = `
-          SELECT "Position".*, "Event".location
+      interface BuildQueryInput {
+        select: string;
+        paginate: string;
+      }
+
+      const buildQuery = (input: BuildQueryInput) => {
+        let sql = "";
+        if (input.select) sql += input.select;
+        sql += `
           FROM "Position", "Event"
           WHERE "Position"."eventId" = "Event"."id"
         `;
-      if (query.gender) {
-        sqlQuery += `AND "Position"."gender" ilike '${query.gender}'`;
-      }
-      if (query.dayfrom) {
-        sqlQuery += `AND "Event"."startTime" >= '${dayfrom}'`;
-      }
-      if (query.dayto) {
-        sqlQuery += `AND "Event"."endTime" <= '${dayto}'`;
-      }
-      if (query.tags && query.tags.length) {
-        sqlQuery += `
-            AND "Position"."id" IN(
-              SELECT "Position"."id"
-              FROM "Position", "Tag", "_PositionToTag"
-              WHERE "Position"."id" = "_PositionToTag"."A"
-              AND "_PositionToTag"."B" = "Tag"."id"
-              AND (
-            `;
-        for (let i = 0; i < query.tags.length; i++) {
-          if (i > 0) sqlQuery += " OR ";
-          sqlQuery += `"Tag"."name" = '${query.tags[i]}'`;
+
+        if (query.gender) {
+          sql += `AND "Position"."gender" ilike '${query.gender}'`;
         }
-        sqlQuery += `)
+        if (query.dayfrom) {
+          sql += `AND "Event"."startTime" >= '${dayfrom}'`;
+        }
+        if (query.dayto) {
+          sql += `AND "Event"."endTime" <= '${dayto}'`;
+        }
+        if (query.tags && query.tags.length) {
+          sql += `
+            AND "Position"."id" IN(
+            SELECT "Position"."id"
+            FROM "Position", "Tag", "_PositionToTag"
+            WHERE "Position"."id" = "_PositionToTag"."A"
+            AND "_PositionToTag"."B" = "Tag"."id"
+            AND (
+          `;
+          for (let i = 0; i < query.tags.length; i++) {
+            if (i > 0) sql += " OR ";
+            sql += `"Tag"."name" = '${query.tags[i]}'`;
+          }
+          sql += `)
             GROUP BY "Position"."id"
             HAVING COUNT("Position"."id") > 0
           `;
-        sqlQuery += `)`;
-      }
+          sql += `)`;
+        }
 
-      if (query.address) {
-        sqlQuery += `
-            AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
-            ORDER BY
-            "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
-          `;
-      }
-      if (query.limit) {
-        sqlQuery += `LIMIT ${query.limit}`;
-      }
-      if (query.offset) {
-        sqlQuery += `OFFSET ${query.offset}`;
-      }
+        if (query.address) {
+          sql += `
+          AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
+          ORDER BY
+          "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
+        `;
+        }
+        if (input.paginate) sql += input.paginate;
+        return sql;
+      };
+
+      let paginate = "";
+      if (query.limit) paginate += `LIMIT ${query.limit}`;
+      if (query.offset) paginate += `OFFSET ${query.offset}`;
 
       try {
-        const result = await prisma.$queryRaw(sqlQuery);
+        const totalSql = buildQuery({
+          select: "SELECT COUNT(*)",
+          paginate: undefined,
+        });
+        const dataSql = buildQuery({
+          select: `SELECT "Position".*, "Event".location`,
+          paginate: paginate,
+        });
+
+        const total = await prisma.$queryRaw(totalSql);
+        const data = await prisma.$queryRaw(dataSql);
+        const result = {
+          total: total[0].count,
+          data: data,
+        };
         return res.status(200).json(result);
       } catch (e) {
         return next(e);
