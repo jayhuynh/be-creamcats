@@ -154,7 +154,7 @@ const genApplications = async () => {
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
 
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 180; i++) {
     const application = await genApplication(users, positions);
     if (!application) continue;
 

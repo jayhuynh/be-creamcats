@@ -6,7 +6,11 @@ import fetch from "node-fetch";
 
 import { BadRequestError, NotFoundError } from "../errors";
 import { prisma } from "../../utils";
-import { Dict } from "../../utils/types";
+
+interface GetPositionsResult {
+  total: number;
+  data: Array<object>;
+}
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -34,109 +38,15 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       return next(new BadRequestError(error.message));
     }
 
-    let address: any;
-
-    if (query.address) {
-      address = await queryAddress(query.address);
-      if (query.address && !address) {
-        return next(
-          new NotFoundError(`Address ${query.address} does not exist.`)
-        );
-      }
-    }
-
-    const lng = query.lng || address.lng || null;
-    const lat = query.lat || address.lat || null;
-    const dayfrom = query.dayfrom
-      ? new Date(query.dayfrom).toISOString()
-      : undefined;
-    const dayto = query.dayto ? new Date(query.dayto).toISOString() : undefined;
-
     if (query.sort) {
       try {
-        const sortedPositions: Position[] = await getPositionsSortedBy(
-          query.sort,
-          query.order
-        );
-        return res.status(200).json(sortedPositions);
+        return res.status(200).json(await getPositionsWithSort(query));
       } catch (e) {
         return next(e);
       }
     } else {
-      interface BuildQueryInput {
-        select: string;
-        paginate: string;
-      }
-
-      const buildQuery = (input: BuildQueryInput) => {
-        let sql = "";
-        if (input.select) sql += input.select;
-        sql += `
-          FROM "Position", "Event"
-          WHERE "Position"."eventId" = "Event"."id"
-        `;
-
-        if (query.gender) {
-          sql += `AND "Position"."gender" ilike '${query.gender}'`;
-        }
-        if (query.dayfrom) {
-          sql += `AND "Event"."startTime" >= '${dayfrom}'`;
-        }
-        if (query.dayto) {
-          sql += `AND "Event"."endTime" <= '${dayto}'`;
-        }
-        if (query.tags && query.tags.length) {
-          sql += `
-            AND "Position"."id" IN(
-            SELECT "Position"."id"
-            FROM "Position", "Tag", "_PositionToTag"
-            WHERE "Position"."id" = "_PositionToTag"."A"
-            AND "_PositionToTag"."B" = "Tag"."id"
-            AND (
-          `;
-          for (let i = 0; i < query.tags.length; i++) {
-            if (i > 0) sql += " OR ";
-            sql += `"Tag"."name" = '${query.tags[i]}'`;
-          }
-          sql += `)
-            GROUP BY "Position"."id"
-            HAVING COUNT("Position"."id") > 0
-          `;
-          sql += `)`;
-        }
-
-        if (query.address) {
-          sql += `
-          AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
-          ORDER BY
-          "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
-        `;
-        }
-        if (input.paginate) sql += input.paginate;
-        return sql;
-      };
-
-      let paginate = "";
-      if (query.limit) paginate += `LIMIT ${query.limit}`;
-      if (query.offset) paginate += `OFFSET ${query.offset}`;
-
       try {
-        const totalSql = buildQuery({
-          select: "SELECT COUNT(*)",
-          paginate: undefined,
-        });
-        const dataSql = buildQuery({
-          select: `SELECT "Position".*, "Event".location`,
-          paginate: paginate,
-        });
-
-        const total = await prisma.$queryRaw(totalSql);
-        const data = await prisma.$queryRaw(dataSql);
-        const result = {
-          total: total[0].count,
-          data: data,
-        };
-        return res.status(200).json(result);
+        return res.status(200).json(await getPositionsWithFilters(query));
       } catch (e) {
         return next(e);
       }
@@ -144,19 +54,142 @@ export const getPositions: RequestHandler = expressAsyncHandler(
   }
 );
 
-async function getPositionsSortedBy(
-  sort: "applications",
-  order: "asc" | "desc"
-): Promise<Position[]> {
-  const sortedPositionIds: number[] = await getPositionIdsSortedBy(sort, order);
-  const unsortedPositions: Position[] = await prisma.position.findMany({
-    where: { id: { in: sortedPositionIds } },
+const getPositionsWithSort = async (
+  query: any
+): Promise<GetPositionsResult> => {
+  interface Pagination {
+    limit: number;
+    offset: number;
+  }
+
+  const buildQuery = (pagination: Pagination) => {
+    let sql = "";
+    if (!pagination) sql += `SELECT COUNT(*) FROM (`;
+    sql += `
+      SELECT "Position".*
+      FROM "Position"
+      JOIN (
+        SELECT "Position"."id" as "positionId", COUNT(*) AS cnt
+        FROM "Position", "Application"
+        WHERE "Position"."id" = "Application"."positionId"
+        GROUP BY "Position"."id"
+      ) AS st
+      ON "Position"."id" = st."positionId" ORDER BY st.cnt
+      `;
+    if (pagination) {
+      sql += ` LIMIT ${pagination.limit} `;
+      sql += ` OFFSET ${pagination.offset}; `;
+    } else {
+      sql += `) as t;`;
+    }
+    return sql;
+  };
+
+  const totalSql = buildQuery(undefined);
+  const dataSql = buildQuery({
+    limit: query.limit,
+    offset: query.offset ? query.offset : 0,
   });
-  const d: Dict<Position> = {};
-  unsortedPositions.forEach((position) => (d[position.id] = position));
-  const sortedPositions = sortedPositionIds.map((id) => d[id]);
-  return sortedPositions;
-}
+  const total = await prisma.$queryRaw(totalSql);
+  const data = await prisma.$queryRaw(dataSql);
+  return {
+    total: total[0].count,
+    data: data,
+  };
+};
+
+const getPositionsWithFilters = async (
+  query: any
+): Promise<GetPositionsResult> => {
+  let address: any;
+
+  if (query.address) {
+    address = await queryAddress(query.address);
+    if (query.address && !address) {
+      throw new NotFoundError(`Address ${query.address} does not exist.`);
+    }
+  }
+
+  const lng = query.lng || address.lng || null;
+  const lat = query.lat || address.lat || null;
+
+  const dayfrom = query.dayfrom
+    ? new Date(query.dayfrom).toISOString()
+    : undefined;
+  const dayto = query.dayto ? new Date(query.dayto).toISOString() : undefined;
+
+  interface BuildQueryInput {
+    select: string;
+    paginate: string;
+  }
+
+  const buildQuery = (input: BuildQueryInput) => {
+    let sql = "";
+    if (input.select) sql += input.select;
+    sql += `
+          FROM "Position", "Event"
+          WHERE "Position"."eventId" = "Event"."id"
+        `;
+
+    if (query.gender) {
+      sql += `AND "Position"."gender" ilike '${query.gender}'`;
+    }
+    if (query.dayfrom) {
+      sql += `AND "Event"."startTime" >= '${dayfrom}'`;
+    }
+    if (query.dayto) {
+      sql += `AND "Event"."endTime" <= '${dayto}'`;
+    }
+    if (query.tags && query.tags.length) {
+      sql += `
+            AND "Position"."id" IN(
+            SELECT "Position"."id"
+            FROM "Position", "Tag", "_PositionToTag"
+            WHERE "Position"."id" = "_PositionToTag"."A"
+            AND "_PositionToTag"."B" = "Tag"."id"
+            AND (
+          `;
+      for (let i = 0; i < query.tags.length; i++) {
+        if (i > 0) sql += " OR ";
+        sql += `"Tag"."name" = '${query.tags[i]}'`;
+      }
+      sql += `)
+            GROUP BY "Position"."id"
+            HAVING COUNT("Position"."id") > 0
+          `;
+      sql += `)`;
+    }
+
+    if (query.address) {
+      sql += `
+          AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
+          ORDER BY
+          "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
+        `;
+    }
+    if (input.paginate) sql += input.paginate;
+    return sql;
+  };
+
+  let paginate = "";
+  if (query.limit) paginate += `LIMIT ${query.limit}`;
+  if (query.offset) paginate += `OFFSET ${query.offset}`;
+  const totalSql = buildQuery({
+    select: "SELECT COUNT(*)",
+    paginate: undefined,
+  });
+  const dataSql = buildQuery({
+    select: `SELECT "Position".*, "Event".location`,
+    paginate: paginate,
+  });
+
+  const total = await prisma.$queryRaw(totalSql);
+  const data = await prisma.$queryRaw(dataSql);
+  return {
+    total: total[0].count,
+    data: data,
+  };
+};
 
 const queryAddress = async (address: string): Promise<Object | null> => {
   const key = process.env.GEO_API_KEY;
@@ -174,27 +207,6 @@ const queryAddress = async (address: string): Promise<Object | null> => {
     lat: lat,
   };
 };
-
-async function getPositionIdsSortedBy(
-  sort: "applications",
-  order: "asc" | "desc"
-): Promise<number[]> {
-  if (sort === "applications") {
-    const groupBy = await prisma.application.groupBy({
-      by: ["positionId"],
-      _count: {
-        userId: true,
-      },
-      orderBy: {
-        _count: {
-          userId: order,
-        },
-      },
-    });
-    const positionIds = groupBy.map((application) => application.positionId);
-    return positionIds;
-  }
-}
 
 export const getPositionById = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
