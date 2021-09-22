@@ -1,3 +1,4 @@
+import argon2 from "argon2";
 import faker from "faker";
 import fs from "fs";
 import { Position, Prisma, User } from "@prisma/client";
@@ -148,6 +149,24 @@ const genUsers = async () => {
   for (let i = 0; i < 30; i++) {
     await prisma.user.create({ data: genUser() });
   }
+
+  await prisma.user.create({
+    data: {
+      email: "netcat@uq.edu.au",
+      fullname: "Joel Fenwick",
+      password: await argon2.hash("123456"),
+      gender: "MALE",
+      age: 50,
+      profilePic: faker.image.avatar(),
+      posts: {
+        create: genArray<Prisma.PostCreateInput>({
+          minLen: 1,
+          maxLen: 2,
+          f: genPost,
+        }),
+      },
+    },
+  });
 };
 
 const genApplications = async () => {

@@ -37,6 +37,25 @@ $ npm run db-view
 
 This will run the prisma stdio (database viewer) in your browser on port `5555`.
 
+## User Account
+
+* Login
+
+```json
+{
+	"email": "netcat@uq.edu.au",
+	"password": "123456"
+}
+```
+
+* Access token (Bearer token):
+
+```
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMxLCJpYXQiOjE2MzIzMjQ1MzAsImV4cCI6MTYzNDkxNjUzMH0.4DgV2Rb9M_u7pVndwqjdUzGD4cRm6LX_pWreINnzWt8"
+}
+```
+
 ## API Doc
 
 ### View the API doc
