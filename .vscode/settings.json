@@ -1,7 +1,8 @@
 {
   "files.trimTrailingWhitespace": true,
   "files.associations": {
-    "*.json": "json"
+    "*.json": "json",
+    "*.sql": "postgres"
   },
   "[json]": {
     "editor.tabSize": 2,
@@ -16,5 +17,8 @@
   "[prisma]": {
     "editor.tabSize": 2,
     "editor.formatOnSave": true
+  },
+  "[postgres]": {
+    "editor.tabSize": 2
   }
 }

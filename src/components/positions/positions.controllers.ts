@@ -15,7 +15,7 @@ interface GetPositionsResult {
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const querySchema = Joi.object({
-      sort: Joi.string().valid("applications"),
+      sort: Joi.string().valid("applications", "distance"),
       order: Joi.string().valid("asc", "desc"),
       gender: Joi.string().valid("male", "female"),
       tags: Joi.array(),
@@ -38,18 +38,124 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       return next(new BadRequestError(error.message));
     }
 
-    if (query.sort) {
-      try {
-        return res.status(200).json(await getPositionsWithSort(query));
-      } catch (e) {
-        return next(e);
+    const sort = query.sort;
+    const order = query.order;
+    const gender = query.gender;
+    const tags = query.tags;
+    const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
+    const dayfrom = parseDay(query.dayfrom);
+    const dayto = parseDay(query.dayto);
+    const limit = query.limit;
+    const offset = query.offset;
+    let address: any;
+    if (!query.address || !(address = await queryAddress(query.address))) {
+      return next(
+        new NotFoundError(`Address ${query.address} does not exist.`)
+      );
+    }
+    const lng = query.lng || address.lng;
+    const lat = query.lat || address.lat;
+    const within = query.within;
+    let sql = `
+SELECT
+  pos.id as pos_id,
+  pos.name as pos_name,
+  pe.eve_id as event_id,
+  pa.application_cnt as application_cnt,
+  pe.coor as coor
+FROM
+  "Position" as pos
+    `;
+    if (sort === "applications") {
+      sql += `
+    JOIN (
+      SELECT
+        pos.id as pos_id,
+        COUNT(*) AS application_cnt
+      FROM "Position" as pos, "Application" as app
+      WHERE pos.id = app."positionId"
+      GROUP BY pos.id
+    ) AS pa ON pos.id = pa.pos_id
+      `;
+    }
+    sql += `
+    JOIN (
+      SELECT
+        pos.id as pos_id,
+        eve."id" as eve_id,
+        eve."startTime" as eve_st,
+        eve."endTime" as eve_et,
+        eve."coor" as coor
+      FROM "Position" as pos, "Event" as eve
+      WHERE pos."eventId" = eve.id
+    ) AS pe ON pos.id = pe.pos_id
+WHERE
+`;
+    if (tags) {
+      sql += `
+  pos.id IN (
+    SELECT pos.id as pos_id
+    FROM "Position" as pos, "_PositionToTag" as ptot, "Tag" as tag
+    WHERE pos.id = ptot."A"
+      AND ptot."B" = tag.id
+      AND (
+        `;
+      for (let i = 0; i < tags.length; i++) {
+        if (i !== 0) sql += ` OR `;
+        sql += `
+          tag.name = '${tags[i]}';
+          `;
       }
-    } else {
-      try {
-        return res.status(200).json(await getPositionsWithFilters(query));
-      } catch (e) {
-        return next(e);
-      }
+      sql += `
+      )
+    GROUP BY pos_id
+    HAVING COUNT(pos.id) > 0
+  )`;
+    }
+    if (gender) {
+      sql += `
+  AND pos.gender ILIKE '${gender}'
+    `;
+    }
+    if (dayfrom) {
+      sql += `
+  AND pe.eve_st >= '${dayfrom}'
+      `;
+    }
+    if (dayto) {
+      sql += `
+  AND pe.eve_et <= '${dayto}'
+      `;
+    }
+    if (within) {
+      sql += `
+  AND ST_DWITHIN(pe.coor, ST_MAKEPOINT(${lng}, ${lat}), ${within})
+      `;
+    }
+    if (sort === "applications") {
+      sql += `
+ORDER BY pa.application_cnt ${order}
+`;
+    } else if (sort === "distance") {
+      sql += `
+ORDER BY pe.coor <-> ST_MakePoint(${lng}, ${lat})::geography ${order}
+`;
+    }
+
+    const countSql = `SELECT COUNT(*) FROM ( ${sql} );`;
+
+    sql += limit ? `LIMIT ${limit}` : "";
+    sql += offset ? `OFFSET ${offset}` : "";
+
+    try {
+      const total = await prisma.$queryRaw(countSql);
+      const data = await prisma.$queryRaw(sql);
+      return res.status(200).json({
+        total: total[0].count,
+        data: data,
+      });
+    } catch (e) {
+      return next(e);
     }
   }
 );
@@ -69,7 +175,7 @@ const getPositionsWithSort = async (
       SELECT "Position".*
       FROM "Position"
       JOIN (
-        SELECT "Position"."id" as "positionId", COUNT(*) AS cnt
+        SELECT "Position"."id" AS "positionId", COUNT(*) AS cnt
         FROM "Position", "Application"
         WHERE "Position"."id" = "Application"."positionId"
         GROUP BY "Position"."id"
@@ -81,6 +187,156 @@ const getPositionsWithSort = async (
       sql += ` OFFSET ${pagination.offset}; `;
     } else {
       sql += `) as t;`;
+=======
+    const sort = query.sort;
+    const order = query.order;
+    const gender = query.gender;
+    const tags = query.tags;
+    const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
+    const dayfrom = parseDay(query.dayfrom);
+    const dayto = parseDay(query.dayto);
+    const limit = query.limit;
+    const offset = query.offset;
+    let address: any;
+    if (!query.address || !(address = await queryAddress(query.address))) {
+      return next(
+        new NotFoundError(`Address ${query.address} does not exist.`)
+      );
+    }
+    const lng = query.lng || address.lng;
+    const lat = query.lat || address.lat;
+    const within = query.within;
+    let sql = `
+SELECT
+  pos.id as pos_id,
+  pos.name as pos_name,
+  pe.eve_id as event_id,
+  pa.application_cnt as application_cnt,
+  pe.coor as coor
+FROM
+  "Position" as pos
+    `;
+    if (sort === "applications") {
+      sql += `
+    JOIN (
+      SELECT
+        pos.id as pos_id,
+        COUNT(*) AS application_cnt
+      FROM "Position" as pos, "Application" as app
+      WHERE pos.id = app."positionId"
+      GROUP BY pos.id
+    ) AS pa ON pos.id = pa.pos_id
+      `;
+    }
+    sql += `
+    JOIN (
+      SELECT
+        pos.id as pos_id,
+        eve."id" as eve_id,
+        eve."startTime" as eve_st,
+        eve."endTime" as eve_et,
+        eve."coor" as coor
+      FROM "Position" as pos, "Event" as eve
+      WHERE pos."eventId" = eve.id
+    ) AS pe ON pos.id = pe.pos_id
+WHERE
+`;
+    if (tags) {
+      sql += `
+  pos.id IN (
+    SELECT pos.id as pos_id
+    FROM "Position" as pos, "_PositionToTag" as ptot, "Tag" as tag
+    WHERE pos.id = ptot."A"
+      AND ptot."B" = tag.id
+      AND (
+        `;
+      for (let i = 0; i < tags.length; i++) {
+        if (i !== 0) sql += ` OR `;
+        sql += `
+          tag.name = '${tags[i]}';
+          `;
+      }
+      sql += `
+      )
+    GROUP BY pos_id
+    HAVING COUNT(pos.id) > 0
+  )`;
+    }
+    if (gender) {
+      sql += `
+  AND pos.gender ILIKE '${gender}'
+    `;
+    }
+    if (dayfrom) {
+      sql += `
+  AND pe.eve_st >= '${dayfrom}'
+      `;
+    }
+    if (dayto) {
+      sql += `
+  AND pe.eve_et <= '${dayto}'
+      `;
+    }
+    if (within) {
+      sql += `
+  AND ST_DWITHIN(pe.coor, ST_MAKEPOINT(${lng}, ${lat}), ${within})
+      `;
+    }
+    if (sort === "applications") {
+      sql += `
+ORDER BY pa.application_cnt ${order}
+`;
+    } else if (sort === "distance") {
+      sql += `
+ORDER BY pe.coor <-> ST_MakePoint(${lng}, ${lat})::geography ${order}
+`;
+    }
+
+    const countSql = `SELECT COUNT(*) FROM ( ${sql} );`;
+
+    sql += limit ? `LIMIT ${limit}` : "";
+    sql += offset ? `OFFSET ${offset}` : "";
+
+    try {
+      const total = await prisma.$queryRaw(countSql);
+      const data = await prisma.$queryRaw(sql);
+      return res.status(200).json({
+        total: total[0].count,
+        data: data,
+      });
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
+
+const getPositionsWithSort = async (
+  query: any
+): Promise<GetPositionsResult> => {
+  interface Pagination {
+    limit: number;
+    offset: number;
+  }
+
+  const buildQuery = (pagination: Pagination) => {
+    let sql = "";
+    if (!pagination) sql += `SELECT COUNT(*) FROM (`;
+    sql += `
+      SELECT "Position".*
+      FROM "Position"
+      JOIN (
+        SELECT "Position"."id" AS "positionId", COUNT(*) AS cnt
+        FROM "Position", "Application"
+        WHERE "Position"."id" = "Application"."positionId"
+        GROUP BY "Position"."id"
+      ) AS st
+      ON "Position"."id" = st."positionId" ORDER BY st.cnt
+      `;
+    if (pagination) {
+      sql += ` LIMIT ${pagination.limit} `;
+      sql += ` OFFSET ${pagination.offset}; `;
+    } else {
+      sql += `) AS t;`;
     }
     return sql;
   };
@@ -110,8 +366,8 @@ const getPositionsWithFilters = async (
     }
   }
 
-  const lng = query.lng || address.lng || null;
-  const lat = query.lat || address.lat || null;
+  const lng = query.lng || address.lng || undefined;
+  const lat = query.lat || address.lat || undefined;
 
   const dayfrom = query.dayfrom
     ? new Date(query.dayfrom).toISOString()
@@ -128,6 +384,8 @@ const getPositionsWithFilters = async (
     if (input.select) sql += input.select;
     sql += `
           FROM "Position", "Event"
+          `;
+    sql += `
           WHERE "Position"."eventId" = "Event"."id"
         `;
 
@@ -163,9 +421,8 @@ const getPositionsWithFilters = async (
     if (query.address) {
       sql += `
           AND ST_DWithin("Event"."coor", ST_MakePoint(${lng}, ${lat}), ${query.within})
-          ORDER BY
-          "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
         `;
+      // ORDER BY "Event".coor <-> ST_MakePoint(${lng}, ${lat})::geography
     }
     if (input.paginate) sql += input.paginate;
     return sql;
