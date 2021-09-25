@@ -5,6 +5,7 @@
     "Prisma.prisma",
     "ms-azuretools.vscode-docker",
     "irongeek.vscode-env",
-    "42crunch.vscode-openapi"
+    "42crunch.vscode-openapi",
+    "ckolkman.vscode-postgres"
   ]
 }
