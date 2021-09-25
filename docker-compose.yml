@@ -20,9 +20,7 @@ services:
 
   db:
     container_name: "${DB_CONT_NAME}"
-    build:
-      context: ./postgres
-      dockerfile: Dockerfile
+    image: postgis/postgis:latest
     restart: unless-stopped
     ports:
       - "${DB_HOST_PORT}:${DB_CONT_PORT}"
