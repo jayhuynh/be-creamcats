@@ -205,10 +205,14 @@ export const getPositionById = expressAsyncHandler(
     }
 
     try {
-      const position: Position = await prisma.position.findUnique({
+      const position = await prisma.position.findUnique({
         where: { id },
+        include: {
+          tags: true,
+        },
       });
       if (position) {
+        position.tags = position.tags.map((tag: any) => tag.name);
         return res.status(200).json(position);
       } else {
         return next(new NotFoundError(`Position with id ${id} not found`));
