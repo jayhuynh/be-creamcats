@@ -54,10 +54,10 @@ export const getPositions: RequestHandler = expressAsyncHandler(
 
     let sql = `
       SELECT
-        pos.id as pos_id,
-        pos.name as pos_name,
-        pe.eve_id as event_id,
-        pa.application_cnt as application_cnt
+        pos.id as id,
+        pos.name as name,
+        pe.eve_id as "evendId",
+        pa.application_cnt as "applicationCount"
       FROM
         "Position" as pos
         JOIN (
@@ -133,7 +133,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
 
     if (sort === "applications") {
       sql += `
-        ORDER BY pa.application_cnt ${order}
+        ORDER BY "applicationCount" ${order}
       `;
     } else if (sort === "distance") {
       sql += `
@@ -141,7 +141,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       `;
     } else if (sort === "timecreated") {
       sql += `
-        ORDER BY ORDER BY pos."timeCreated" ${order}
+        ORDER BY pos."timeCreated" ${order}
       `;
     }
 
@@ -150,16 +150,33 @@ export const getPositions: RequestHandler = expressAsyncHandler(
     sql += limit ? `LIMIT ${limit}` : "";
     sql += offset ? `OFFSET ${offset}` : "";
 
+    let total;
+    let data;
+
     try {
-      const total = await prisma.$queryRaw(countSql);
-      const data = await prisma.$queryRaw(sql);
-      return res.status(200).json({
-        total: total[0].count,
-        data: data,
-      });
+      total = await prisma.$queryRaw(countSql);
+      data = await prisma.$queryRaw(sql);
     } catch (e) {
       return next(e);
     }
+
+    for (const position of data) {
+      const queriedPosition = await prisma.position.findUnique({
+        where: {
+          id: position.id,
+        },
+        include: {
+          tags: true,
+        },
+      });
+      Object.assign(position, queriedPosition);
+      position.tags = position.tags.map((tag: any) => tag.name);
+    }
+
+    return res.status(200).json({
+      total: total[0].count,
+      data: data,
+    });
   }
 );
 

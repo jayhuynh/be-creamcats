@@ -118,7 +118,7 @@ components:
         requirements:
           type: "string"
           description: "requirements for the position"
-        typesOfWork:
+        tags:
           type: "array"
           items:
             type: "string"
@@ -354,7 +354,7 @@ paths:
     get:
       tags:
       - "positions"
-      summary: "Get positions (DONE-ish)"
+      summary: "Get positions (DONE)"
       parameters:
       - name: "sort"
         in: "query"
@@ -362,7 +362,7 @@ paths:
         required: false
         schema:
           type: "string"
-          enum: [ 'applications' ]
+          enum: [ 'applications', 'distance', 'timecreated' ]
       - name: "order"
         in: "query"
         description: "sort order"
@@ -452,7 +452,32 @@ paths:
                   data:
                     type: "array"
                     items:
-                      $ref: "#/components/schemas/Position"
+                      type: "object"
+                      properties:
+                        id:
+                          type: "number"
+                          format: "integer"
+                        name:
+                          type: "string"
+                        desc:
+                          type: "string"
+                        requirements:
+                          type: "string"
+                        tags:
+                          type: "array"
+                          items:
+                            type: "string"
+                        timeCreated:
+                          type: "string"
+                          format: "date-time"
+                        thumbnail:
+                          type: "string"
+                        eventId:
+                          type: "number"
+                          format: "string"
+                        applicationCount:
+                          type: "number"
+                          format: "integer"
   /positions/{positionId}:
     get:
       tags:

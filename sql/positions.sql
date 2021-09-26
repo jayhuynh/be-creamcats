@@ -1,9 +1,9 @@
 SELECT
-  pos.id as pos_id,
-  pos.name as pos_name,
-  pe.eve_id as event_id,
-  pa.application_cnt as application_cnt
-  -- pe.coor as coor
+  pos.id as id,
+  pos.name as name,
+  pe.eve_id as "evendId",
+  pa.application_cnt as "applicationCount",
+  pe.coor <-> ST_MakePoint(152.99, -27.4942)::geography as distance
 FROM
   "Position" as pos
     JOIN (
@@ -35,7 +35,7 @@ WHERE
     HAVING COUNT(pos.id) > 0
   )
   AND pos.gender ILIKE 'male'
-  AND ST_DWITHIN(pe.coor, ST_MAKEPOINT(152.99, -27.4942), 10000)
--- ORDER BY pa.application_cnt DESC
--- ORDER BY pe.coor <-> ST_MakePoint(152.99, -27.4942)::geography DESC
-ORDER BY pos."timeCreated" DESC
+  AND ST_DWITHIN(pe.coor, ST_MAKEPOINT(152.99, -27.4942), 20000)
+-- ORDER BY "applicationCount" DESC
+ORDER BY pe.coor <-> ST_MakePoint(152.99, -27.4942)::geography DESC
+-- ORDER BY pos."timeCreated" DESC
