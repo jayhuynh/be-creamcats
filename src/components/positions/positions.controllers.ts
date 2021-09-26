@@ -56,7 +56,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       SELECT
         pos.id as id,
         pos.name as name,
-        pe.eve_id as "evendId",
+        pe.eve_id as "eventId",
         pa.application_cnt as "applicationCount"
       FROM
         "Position" as pos
@@ -94,7 +94,6 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       `;
       for (let i = 0; i < tags.length; i++) {
         if (i !== 0) tagCond += ` OR `;
-        console.log(`tags[${i}] = ${tags[i]}`);
         tagCond += `
               tag.name = '${tags[i]}'
         `;
@@ -160,7 +159,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
       return next(e);
     }
 
-    for (const position of data) {
+    for (let position of data) {
       const queriedPosition = await prisma.position.findUnique({
         where: {
           id: position.id,
