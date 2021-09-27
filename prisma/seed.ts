@@ -19,11 +19,11 @@ const genArray = <T>(input: ArrayGenInput<T>): T[] => {
   );
 };
 
-const genUser = (): Prisma.UserCreateInput => {
+const genUser = async (): Promise<Prisma.UserCreateInput> => {
   return {
     email: faker.internet.email(),
     fullname: faker.name.findName(),
-    password: faker.internet.password(),
+    password: await argon2.hash(faker.internet.password()),
     gender: faker.random.arrayElement(Object.values(Gender)),
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
@@ -89,15 +89,16 @@ const genOrganizations = async () => {
     };
   };
 
-  const genOrganization = (organization: any) => {
+  const genOrganization = async (organization: any) => {
     return {
       name: organization.name,
-      desc: faker.lorem.paragraph(),
-      addr: organization.events[0].location,
       email:
         "contact@" +
-        organization.name.split(" ").slice(0, -1).join("").toLowerCase() +
+        organization.name.split(" ").join("").toLowerCase() +
         ".com",
+      password: await argon2.hash(faker.internet.password()),
+      desc: faker.lorem.paragraph(),
+      addr: organization.events[0].location,
       phone: faker.phone.phoneNumber(),
       events: {
         create: organization.events.map((event: any) => genEvent(event)),
@@ -106,7 +107,9 @@ const genOrganizations = async () => {
   };
 
   for (const { organization } of data) {
-    await prisma.organization.create({ data: genOrganization(organization) });
+    await prisma.organization.create({
+      data: await genOrganization(organization),
+    });
   }
 };
 
@@ -147,7 +150,7 @@ const genTags = async () => {
 
 const genUsers = async () => {
   for (let i = 0; i < 30; i++) {
-    await prisma.user.create({ data: genUser() });
+    await prisma.user.create({ data: await genUser() });
   }
 
   await prisma.user.create({
@@ -182,7 +185,7 @@ const genApplications = async () => {
         data: application,
       });
     } catch (e) {
-      console.error(`Error:: ${e}. Seeder will continue to run...`);
+      console.error(`Issue:: ${e}. Seeder will continue to run...`);
     }
   }
 };
