@@ -1,6 +1,7 @@
 import argon2 from "argon2";
 import faker from "faker";
 import fs from "fs";
+import { addDays } from "date-fns";
 import { Position, Prisma, User } from "@prisma/client";
 import { PrismaClient, Gender } from ".prisma/client";
 
@@ -72,21 +73,28 @@ const genOrganizations = async () => {
   };
 
   const genEvent = (event: any) => {
-    const startTime = faker.date.soon();
-    const endTime = new Date();
-    endTime.setDate(startTime.getDate() + faker.datatype.number(2));
+    const events = [];
+    const n = faker.datatype.number({ min: 5, max: 10 });
+    for (let i = 0; i < n; i++) {
+      const startTime = faker.random.arrayElement([
+        faker.date.past(),
+        faker.date.future(),
+      ]);
+      const endTime = addDays(startTime, faker.datatype.number(3));
 
-    return {
-      name: event.name,
-      desc: faker.lorem.paragraph(),
-      location: event.location,
-      startTime: startTime,
-      endTime: endTime,
-      gallery: Array(3).fill(faker.image.city),
-      positions: {
-        create: event.positions.map((position: any) => genPosition(position)),
-      },
-    };
+      events.push({
+        name: `${event.name} ${i}`,
+        desc: faker.lorem.paragraph(),
+        location: event.location,
+        startTime: startTime,
+        endTime: endTime,
+        gallery: Array(3).fill(faker.image.city),
+        positions: {
+          create: event.positions.map((position: any) => genPosition(position)),
+        },
+      });
+    }
+    return events;
   };
 
   const genOrganization = async (organization: any) => {
@@ -106,7 +114,9 @@ const genOrganizations = async () => {
       addr: organization.events[0].location,
       phone: faker.phone.phoneNumber(),
       events: {
-        create: organization.events.map((event: any) => genEvent(event)),
+        create: [].concat(
+          ...organization.events.map((event: any) => genEvent(event))
+        ),
       },
     };
   };
@@ -181,7 +191,7 @@ const genApplications = async () => {
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
 
-  for (let i = 0; i < 180; i++) {
+  for (let i = 0; i < 500; i++) {
     const application = await genApplication(users, positions);
     if (!application) continue;
 
