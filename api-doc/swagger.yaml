@@ -83,9 +83,11 @@ components:
         desc:
           type: "string"
           description: "description of the event"
-        location:
-          type: "string"
-          description: "location of the event"
+        gallery:
+          description: "gallery of the event"
+          type: "array"
+          items:
+            type: "string"
         startTime:
           type: "string"
           format: "date-time"
@@ -94,16 +96,9 @@ components:
           type: "string"
           format: "date-time"
           description: "end time of the event"
-        gallery:
-          type: "array"
-          items:
-            type: "string"
-          description: "gallery of the event"
-        status:
+        location:
           type: "string"
-          enum:
-          - "ONGOING"
-          - "PAST"
+          description: "location of the event"
     Organization:
       properties:
         id:
@@ -379,6 +374,48 @@ paths:
                 $ref: "#/components/schemas/Organization"
         "404":
           description: "NotFoundError: Organization not found"
+  /organizations/{organizationId}/events:
+    get:
+      tags:
+      - "organizations"
+      summary: "Get all events of an organization"
+      parameters:
+      - name: "organizationId"
+        in: "path"
+        description: "id of organisation"
+        required: true
+        schema:
+          type: "integer"
+      - name: "status"
+        in: "query"
+        description: "status of the event"
+        required: false
+        schema:
+          type: "string"
+          enum:
+          - "ongoing"
+          - "past"
+      - name: "limit"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "offset"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Event"
   /positions:
     get:
       tags:

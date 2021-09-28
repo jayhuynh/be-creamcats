@@ -1,8 +1,9 @@
 import express from "express";
-import { getEventById } from "./events.controllers";
+import { getEvents, getEventById } from "./events.controllers";
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
+router.route("/").get(getEvents);
 router.route("/:id").get(getEventById);
 
 export { router };
