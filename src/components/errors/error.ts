@@ -67,3 +67,12 @@ export class ConflictError extends ApiError {
     });
   }
 }
+
+export class DatabaseError extends ApiError {
+  constructor(message: string) {
+    super({
+      statusCode: 503, // https://stackoverflow.com/a/1434358
+      message,
+    });
+  }
+}

@@ -90,13 +90,18 @@ const genOrganizations = async () => {
   };
 
   const genOrganization = async (organization: any) => {
+    const email =
+      "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
+    let password: string;
+    if (email === "contact@thesalvationarmyaustralia.com") {
+      password = "123456";
+    } else {
+      password = faker.internet.password();
+    }
     return {
       name: organization.name,
-      email:
-        "contact@" +
-        organization.name.split(" ").join("").toLowerCase() +
-        ".com",
-      password: await argon2.hash(faker.internet.password()),
+      email: email,
+      password: await argon2.hash(password),
       desc: faker.lorem.paragraph(),
       addr: organization.events[0].location,
       phone: faker.phone.phoneNumber(),

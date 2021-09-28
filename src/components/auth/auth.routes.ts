@@ -7,6 +7,6 @@ router.route("/login").post(login);
 
 router.route("/register").post(register);
 
-router.route("/email/:email").get(checkAvailableEmail);
+router.route("/email").get(checkAvailableEmail);
 
 export { router };

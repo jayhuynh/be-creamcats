@@ -1,5 +1,6 @@
 import { Request } from "express";
 
 export interface AuthorizedRequest extends Request {
-  userId: number;
+  accountId: number;
+  accountType: "volunteer" | "organization";
 }
