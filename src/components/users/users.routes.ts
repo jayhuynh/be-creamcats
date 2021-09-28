@@ -1,11 +1,9 @@
 import express from "express";
-import { auth } from "../auth";
-import {
-  getUserProfileOfMe,
-} from "./users.controllers";
+import { authorizeUser } from "../auth";
+import { getUserProfileOfMe } from "./users.controllers";
 
 const router = express.Router();
 
-router.route("/me").get(auth, getUserProfileOfMe);
+router.route("/me").get(authorizeUser, getUserProfileOfMe);
 
 export { router };

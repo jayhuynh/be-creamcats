@@ -10,6 +10,7 @@ import {
   SchemaError,
   NotFoundError,
   BadRequestError,
+  AuthError,
 } from "../errors";
 
 export const getApplicationById = expressAsyncHandler(
@@ -37,10 +38,16 @@ export const getApplicationById = expressAsyncHandler(
 
 export const getApplicationsOfMe = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+    if (req.accountType !== "volunteer") {
+      return next(
+        new AuthError("Invalid permission - must be a volunteer account")
+      );
+    }
+
     try {
       const applications = await prisma.application.findMany({
         where: {
-          userId: req.userId,
+          userId: req.accountId,
         },
       });
       return res.status(200).json(applications);
@@ -52,10 +59,16 @@ export const getApplicationsOfMe = expressAsyncHandler(
 
 export const getApplicationCountOfMe = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
+    if (req.accountType !== "volunteer") {
+      return next(
+        new AuthError("Invalid permission - must be a volunteer account")
+      );
+    }
+
     try {
       const applications = await prisma.application.findMany({
         where: {
-          userId: req.userId,
+          userId: req.accountId,
         },
       });
       return res.status(200).json({

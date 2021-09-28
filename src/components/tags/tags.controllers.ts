@@ -15,7 +15,6 @@ export const getTags = expressAsyncHandler(
 
 export const searchTag = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log(`q = ${req.query.q}`);
     const querySchema = Joi.object({
       q: Joi.string().required(),
     });

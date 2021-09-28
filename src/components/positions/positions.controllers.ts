@@ -1,4 +1,3 @@
-import { Position } from "@prisma/client";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";

@@ -1,11 +1,9 @@
 import express from "express";
-import { auth } from "../auth";
-import {
-  getPostsOfMe,
-} from "./posts.controllers";
+import { authorizeUser } from "../auth";
+import { getPostsOfMe } from "./posts.controllers";
 
 const router = express.Router();
 
-router.route("/me").get(auth, getPostsOfMe);
+router.route("/me").get(authorizeUser, getPostsOfMe);
 
 export { router };

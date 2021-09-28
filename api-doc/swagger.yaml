@@ -48,6 +48,17 @@ components:
           - "ACCEPTED"
           - "REJECTED"
           description: "status of the application"
+    AuthRequestBody:
+      properties:
+        email:
+          type: "string"
+        password:
+          type: "string"
+        type:
+          type: "string"
+          enum:
+          - "volunteer"
+          - "organization"
     AccessToken:
       properties:
         accessToken:
@@ -192,7 +203,7 @@ paths:
     post:
       tags:
       - "applications"
-      summary: "Submit application (DONE)"
+      summary: "Submit application"
       requestBody:
         required: true
         content:
@@ -210,7 +221,7 @@ paths:
     get:
       tags:
       - "applications"
-      summary: "Get application by id (DONE)"
+      summary: "Get application by id"
       parameters:
       - name: "applicationId"
         in: "path"
@@ -233,7 +244,7 @@ paths:
     get:
       tags:
       - "applications"
-      summary: "Get all applications of a user (DONE)"
+      summary: "Get all applications of a user"
       security:
         - bearerAuth: []
       responses:
@@ -249,7 +260,7 @@ paths:
     get:
       tags:
       - "applications"
-      summary: "Get number of applications of a user (DONE)"
+      summary: "Get number of applications of a user"
       responses:
         "200":
           description: "successful"
@@ -265,7 +276,13 @@ paths:
     post:
       tags:
       - "auth"
-      summary: "Login (DONE)"
+      summary: "Login"
+      requestBody:
+        required: true
+        content:
+          "applications/json":
+            schema:
+              $ref: "#/components/schemas/AuthRequestBody"
       responses:
         "200":
           description: "Successful login"
@@ -281,7 +298,13 @@ paths:
     post:
       tags:
       - "auth"
-      summary: "Register a new user (DONE)"
+      summary: "Register a new user"
+      requestBody:
+        required: true
+        content:
+          "applications/json":
+            schema:
+              $ref: "#/components/schemas/AuthRequestBody"
       responses:
         "200":
           description: "successful"
@@ -291,15 +314,21 @@ paths:
                 $ref: "#/components/schemas/AccessToken"
         "409":
           description: "ConflictError: User already exists"
-  /auth/email/{email}:
+  /auth/email:
     get:
       tags:
       - "auth"
-      summary: "Check if email is available (DONE)"
+      summary: "Check if email is available"
       parameters:
       - name: "email"
-        in: "path"
+        in: "query"
         description: "email address"
+        required: true
+        schema:
+          type: "string"
+      - name: "type"
+        in: "query"
+        description: "account type"
         required: true
         schema:
           type: "string"
@@ -312,7 +341,7 @@ paths:
     get:
       tags:
       - "events"
-      summary: "get event (DONE)"
+      summary: "Get event"
       parameters:
       - name: "eventId"
         in: "path"
@@ -333,7 +362,7 @@ paths:
     get:
       tags:
       - "organizations"
-      summary: "get organization (DONE)"
+      summary: "Get organization"
       parameters:
       - name: "organizationId"
         in: "path"
@@ -354,7 +383,7 @@ paths:
     get:
       tags:
       - "positions"
-      summary: "Get positions (DONE)"
+      summary: "Get positions"
       parameters:
       - name: "sort"
         in: "query"
@@ -482,7 +511,7 @@ paths:
     get:
       tags:
       - "positions"
-      summary: "Get position with id (DONE)"
+      summary: "Get position with id"
       parameters:
       - name: "positionId"
         in: "path"
@@ -503,7 +532,7 @@ paths:
     get:
       tags:
       - "posts"
-      summary: "Get posts of a user (DONE)"
+      summary: "Get posts of a user"
       responses:
         "200":
           description: "successful"
@@ -519,7 +548,7 @@ paths:
     get:
       tags:
       - "tags"
-      summary: "Get all tags (DONE)"
+      summary: "Get all tags"
       responses:
         "200":
           description: "successful"
@@ -533,7 +562,7 @@ paths:
     get:
       tags:
       - "tags"
-      summary: "Search for tags matching the query (DONE)"
+      summary: "Search for tags matching the query"
       parameters:
       - name: "q"
         in: "query"
@@ -554,7 +583,7 @@ paths:
     get:
       tags:
       - "users"
-      summary: "Get user info (DONE)"
+      summary: "Get user info"
       responses:
         "200":
           description: "successful"
