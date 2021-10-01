@@ -413,9 +413,15 @@ paths:
           content:
             "application/json":
               schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/Event"
+                type: object
+                properties:
+                  total:
+                    type: "number"
+                    format: "integer"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/Event"
   /positions:
     get:
       tags:
