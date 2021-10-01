@@ -29,19 +29,19 @@ export const getUserProfileOfMe = expressAsyncHandler(
 );
 
 export const updateUserProfile = expressAsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     const schema = Joi.object({
-      userId: Joi.number().integer().required(),
       fullname: Joi.string(),
       age: Joi.number().integer(),
+      gender: Joi.string().valid("male", "female", "other"),
       profilePic: Joi.string(),
     });
     const { error, value } = schema.validate(req.body);
     if (error) {
       return next(new SchemaError(error.message));
     }
-
-    const { userId, fullname, age, profilePic } = value;
+    const { fullname, age, gender, profilePic } = value;
+    const userId = req.accountId;
 
     let existingUser: User;
     try {
@@ -65,6 +65,7 @@ export const updateUserProfile = expressAsyncHandler(
         data: {
           fullname: fullname,
           age: age,
+          gender: gender.toUpperCase(),
           profilePic: profilePic,
         },
       });

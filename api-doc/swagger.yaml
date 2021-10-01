@@ -621,6 +621,8 @@ paths:
       tags:
       - "users"
       summary: "Get user info"
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: "successful"
@@ -631,7 +633,28 @@ paths:
     post:
       tags:
       - "users"
-      summary: "Let user update their info (low priority)"
+      summary: "Let user update their info"
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              type: "object"
+              properties:
+                fullname:
+                  type: "string"
+                age:
+                  type: "number"
+                gender:
+                  type: "string"
+                  enum:
+                    - "male"
+                    - "female"
+                    - "other"
+                profilePic:
+                  type: "string"
       responses:
         "200":
           description: "successful"
