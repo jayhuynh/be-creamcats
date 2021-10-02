@@ -62,7 +62,9 @@ export const getApplicationsOfOrganization = async (
       pos.id as position_id,
       pos.name as position_name,
       usr.gender as gender,
-      application."timeCreated" as applied_at
+      application.id as application_id,
+      application."timeCreated" as applied_at,
+      application.status as application_status
     FROM
       "Application" as application
         JOIN(
@@ -115,14 +117,18 @@ export const getApplicationsOfOrganization = async (
 
   const resultSchema = Joi.array().items(
     Joi.object({
+      application_id: Joi.number().integer().required(),
       user_id: Joi.number().integer().required(),
       user_fullname: Joi.string().required(),
       event_id: Joi.number().integer().required(),
       event_name: Joi.string().required(),
       position_id: Joi.number().integer().required(),
       position_name: Joi.string().required(),
-      gender: Joi.string(),
-      applied_at: Joi.string().isoDate(),
+      gender: Joi.string().valid("MALE", "FEMALE", "OTHER").required(),
+      applied_at: Joi.string().isoDate().required(),
+      application_status: Joi.string()
+        .valid("PENDING", "ACCEPTED", "REJECTED")
+        .required(),
     })
   );
 
@@ -132,6 +138,8 @@ export const getApplicationsOfOrganization = async (
 
   const applications = result.map((el: any) => {
     return {
+      id: el.application_id,
+      status: el.application_status,
       applicant: {
         id: el.user_id,
         fullname: el.user_fullname,
