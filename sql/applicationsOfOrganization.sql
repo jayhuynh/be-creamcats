@@ -6,6 +6,7 @@ SELECT
   pos.id as position_id,
   pos.name as position_name,
   usr.gender as gender,
+  application.id as application_id,
   application."timeCreated" as applied_at,
   application.status as status
 FROM

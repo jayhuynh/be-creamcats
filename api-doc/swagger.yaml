@@ -466,6 +466,16 @@ paths:
                     items:
                       type: object
                       properties:
+                        id:
+                          description: "application id"
+                          type: "number"
+                          format: "integer"
+                        status:
+                          type: string
+                          enum:
+                            - "PENDING"
+                            - "ACCEPTED"
+                            - "REJECTED"
                         applicant:
                           type: "object"
                           properties:
@@ -493,12 +503,6 @@ paths:
                               type: "string"
                         position:
                           type: "object"
-                        status:
-                          type: string
-                          enum:
-                            - "PENDING"
-                            - "ACCEPTED"
-                            - "REJECTED"
   /positions:
     get:
       tags:
