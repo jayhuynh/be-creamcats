@@ -413,9 +413,92 @@ paths:
           content:
             "application/json":
               schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/Event"
+                type: "object"
+                properties:
+                  total:
+                    type: "number"
+                    format: "integer"
+                    description: "Total number of events of the organization in the database"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/Event"
+                    description: "List of returned events"
+  /organizations/{organizationId}/applications:
+    get:
+      tags:
+      - "applications"
+      - "organizations"
+      summary: "Get all events of an organization"
+      parameters:
+      - name: "organizationId"
+        in: "path"
+        description: "id of organisation"
+        required: true
+        schema:
+          type: "integer"
+      - name: "limit"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "offset"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: "object"
+                properties:
+                  total:
+                    type: "number"
+                    format: "integer"
+                    description: "Total number of applications of the organization in the database"
+                  data:
+                    type: "array"
+                    items:
+                      type: object
+                      properties:
+                        applicant:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "number"
+                              format: "integer"
+                            name:
+                              type: "string"
+                            appliedAt:
+                              type: "string"
+                              format: "date-time"
+                            gender:
+                              type: "string"
+                              enum:
+                                - "MALE"
+                                - "FEMALE"
+                                - "OTHER"
+                        event:
+                          type: "object"
+                          properties:
+                            id:
+                              type: "number"
+                              format: "integer"
+                            name:
+                              type: "string"
+                        position:
+                          type: "object"
+                        status:
+                          type: string
+                          enum:
+                            - "PENDING"
+                            - "ACCEPTED"
+                            - "REJECTED"
   /positions:
     get:
       tags:

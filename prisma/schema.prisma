@@ -51,7 +51,7 @@ model Position {
   name         String
   desc         String
   requirements String
-  gender       String?
+  gender       Gender?       @default(ANY)
   timeCreated  DateTime      @updatedAt
   thumbnail    String
   Event        Event         @relation(fields: [eventId], references: [id])
@@ -93,6 +93,7 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+  ANY
 }
 
 enum ApplicationStatus {
