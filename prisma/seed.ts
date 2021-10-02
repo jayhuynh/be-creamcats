@@ -3,7 +3,7 @@ import faker from "faker";
 import fs from "fs";
 import { addDays } from "date-fns";
 import { Position, Prisma, User } from "@prisma/client";
-import { PrismaClient, Gender } from ".prisma/client";
+import { PrismaClient, Gender, ApplicationStatus } from ".prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -23,9 +23,9 @@ const genArray = <T>(input: ArrayGenInput<T>): T[] => {
 const genUser = async (): Promise<Prisma.UserCreateInput> => {
   return {
     email: faker.internet.email(),
-    fullname: faker.name.findName(),
+    fullname: `${faker.name.firstName()} ${faker.name.lastName()}`,
     password: await argon2.hash(faker.internet.password()),
-    gender: faker.random.arrayElement(Object.values(Gender)),
+    gender: faker.random.arrayElement([Gender.MALE, Gender.FEMALE]),
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
     posts: {
@@ -147,6 +147,8 @@ const genApplication = async (users: User[], positions: Position[]) => {
     userId: user.id,
     positionId: position.id,
     notes: faker.lorem.sentence(),
+    timeCreated: faker.date.past(),
+    status: faker.random.arrayElement(Object.values(ApplicationStatus)),
   };
 };
 

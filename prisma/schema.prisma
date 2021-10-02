@@ -51,7 +51,7 @@ model Position {
   name         String
   desc         String
   requirements String
-  gender       String?
+  gender       Gender?       @default(ANY)
   timeCreated  DateTime      @updatedAt
   thumbnail    String
   Event        Event         @relation(fields: [eventId], references: [id])
@@ -61,14 +61,15 @@ model Position {
 }
 
 model Application {
-  id         Int               @id @default(autoincrement())
-  Position   Position          @relation(fields: [positionId], references: [id])
-  positionId Int
-  User       User              @relation(fields: [userId], references: [id])
-  userId     Int
-  notes      String
-  feedback   String?
-  status     ApplicationStatus @default(PENDING)
+  id          Int               @id @default(autoincrement())
+  Position    Position          @relation(fields: [positionId], references: [id])
+  positionId  Int
+  User        User              @relation(fields: [userId], references: [id])
+  userId      Int
+  notes       String
+  timeCreated DateTime          @updatedAt
+  feedback    String?
+  status      ApplicationStatus @default(PENDING)
 
   @@unique([userId, positionId])
 }
@@ -92,6 +93,7 @@ enum Gender {
   MALE
   FEMALE
   OTHER
+  ANY
 }
 
 enum ApplicationStatus {
