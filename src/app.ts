@@ -5,6 +5,7 @@ import { router as authRouter } from "./components/auth";
 import { router as usersRouter } from "./components/users";
 import { router as applicationsRouter } from "./components/applications";
 import { router as eventsRouter } from "./components/events";
+import { router as imagesRouter } from "./components/images";
 import { router as dummiesRouter } from "./components/dummies";
 import { router as organizationsRouter } from "./components/organizations";
 import { router as positionsRouter } from "./components/positions";
@@ -27,16 +28,16 @@ app.use(logger);
 // Json parsing middleware
 app.use(express.json());
 
-app.use("/auth", authRouter);
-
-app.use("/dummies", dummiesRouter);
-app.use("/users", usersRouter);
 app.use("/applications", applicationsRouter);
+app.use("/auth", authRouter);
+app.use("/dummies", dummiesRouter);
 app.use("/events", eventsRouter);
+app.use("/images", imagesRouter);
 app.use("/organizations", organizationsRouter);
 app.use("/positions", positionsRouter);
-app.use("/tags", tagsRouter);
 app.use("/posts", postsRouter);
+app.use("/tags", tagsRouter);
+app.use("/users", usersRouter);
 
 // Error Handling
 app.use("*", routeNotFoundHandler); // catch all invalid routes
