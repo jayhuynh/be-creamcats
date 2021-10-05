@@ -34,7 +34,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
 
     const sort = query.sort;
     const order = query.order;
-    const gender = query.gender;
+    const gender = query.gender?.toUpperCase();
     const tags = query.tags;
     const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
     const dayfrom = parseDay(query.dayfrom);
@@ -108,7 +108,7 @@ export const getPositions: RequestHandler = expressAsyncHandler(
 
     if (gender) {
       conds.push(`
-        pos.gender ILIKE '${gender}'
+        pos.gender = '${gender}'
       `);
     }
     if (dayfrom) {

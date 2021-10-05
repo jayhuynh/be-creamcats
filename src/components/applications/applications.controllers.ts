@@ -24,47 +24,51 @@ export const getApplications = expressAsyncHandler(
     } catch (e) {
       return next(new SchemaError(e.message));
     }
-    let limit: number | undefined;
-    let offset: number | undefined;
-    try {
-      const query = await Joi.object({
-        limit: Joi.number().integer(),
-        offset: Joi.number().integer(),
-      })
-        .with("limit", "offset")
-        .validateAsync(req.query);
-      limit = query.limit;
-      offset = query.offset;
-    } catch (e) {
-      return next(new SchemaError(e.message));
-    }
     if (organizationId) {
-      res
-        .status(200)
-        .json(
-          await getApplicationsOfOrganization(organizationId, limit, offset)
-        );
+      let result;
+      try {
+        result = await getApplicationsOfOrganization(organizationId, req.query);
+      } catch (e) {
+        return next(e);
+      }
+      res.status(200).json(result);
     }
   }
 );
 
 export const getApplicationsOfOrganization = async (
   organizationId: number,
-  limit: number | undefined,
-  offset: number | undefined
+  query: any
 ) => {
+  const querySchema = Joi.object({
+    gender: Joi.string().valid("male", "female", "other"),
+    eventId: Joi.number().integer(),
+    positionId: Joi.number().integer(),
+    search: Joi.string(),
+    sort: Joi.string().valid("applicantName", "appliedAt"),
+    order: Joi.string().valid("asc", "desc"),
+    limit: Joi.number().integer(),
+    offset: Joi.number().integer(),
+  }).with("sort", "order");
+
+  const values = await querySchema.validateAsync(query).catch((e) => {
+    throw new SchemaError(e.message);
+  });
+
+  values.gender = values.gender?.toUpperCase();
+
   let sql = `
     SELECT
-      usr.id as user_id,
-      usr.fullname as user_fullname,
-      eve.id as event_id,
-      eve.name as event_name,
-      pos.id as position_id,
-      pos.name as position_name,
-      usr.gender as gender,
-      application.id as application_id,
-      application."timeCreated" as applied_at,
-      application.status as application_status
+      usr.id as "applicantId",
+      usr.fullname as "applicantName",
+      eve.id as "eventId",
+      eve.name as "eventName",
+      pos.id as "positionId",
+      pos.name as "positionName",
+      usr.gender as "gender",
+      application.id as "applicationId",
+      application."timeCreated" as "appliedAt",
+      application.status as "status"
     FROM
       "Application" as application
         JOIN(
@@ -97,12 +101,36 @@ export const getApplicationsOfOrganization = async (
           FROM
             "Organization" as org
         ) AS org ON eve.org_id = org.id
-    WHERE org.id = ${organizationId}
   `;
 
+  const conds: string[] = [];
+  conds.push(`org.id = ${organizationId}`);
+  if (values.gender) {
+    conds.push(`usr.gender = '${values.gender}'`);
+  }
+  if (values.eventId) {
+    conds.push(`eve.id = ${values.eventId}`);
+  }
+  if (values.positionId) {
+    conds.push(`pos.id = ${values.positionId}`);
+  }
+  if (values.search) {
+    conds.push(
+      `(usr.fullname || eve.name || pos.name) ILIKE '%${values.search}%'`
+    );
+  }
+
+  sql += `WHERE ${conds.join(" AND ")}`;
+
   const countSql = `SELECT COUNT(*) FROM ( ${sql} ) as cnt_table;`;
-  sql += limit ? `LIMIT ${limit}` : "";
-  sql += offset ? `OFFSET ${offset}` : "";
+
+  if (values.sort) {
+    sql += `
+      ORDER BY "${values.sort}" ${values.order}
+    `;
+  }
+  sql += values.limit ? ` LIMIT ${values.limit} ` : ``;
+  sql += values.offset ? ` OFFSET ${values.offset} ` : ``;
 
   const total: number = await prisma
     .$queryRaw(countSql)
@@ -117,18 +145,16 @@ export const getApplicationsOfOrganization = async (
 
   const resultSchema = Joi.array().items(
     Joi.object({
-      application_id: Joi.number().integer().required(),
-      user_id: Joi.number().integer().required(),
-      user_fullname: Joi.string().required(),
-      event_id: Joi.number().integer().required(),
-      event_name: Joi.string().required(),
-      position_id: Joi.number().integer().required(),
-      position_name: Joi.string().required(),
+      applicationId: Joi.number().integer().required(),
+      applicantId: Joi.number().integer().required(),
+      applicantName: Joi.string().required(),
+      eventId: Joi.number().integer().required(),
+      eventName: Joi.string().required(),
+      positionId: Joi.number().integer().required(),
+      positionName: Joi.string().required(),
       gender: Joi.string().valid("MALE", "FEMALE", "OTHER").required(),
-      applied_at: Joi.string().isoDate().required(),
-      application_status: Joi.string()
-        .valid("PENDING", "ACCEPTED", "REJECTED")
-        .required(),
+      appliedAt: Joi.string().isoDate().required(),
+      status: Joi.string().valid("PENDING", "ACCEPTED", "REJECTED").required(),
     })
   );
 
@@ -138,21 +164,21 @@ export const getApplicationsOfOrganization = async (
 
   const applications = result.map((el: any) => {
     return {
-      id: el.application_id,
-      status: el.application_status,
+      id: el.applicationId,
+      status: el.status,
       applicant: {
-        id: el.user_id,
-        fullname: el.user_fullname,
-        appliedAt: el.applied_at,
+        id: el.applicantId,
+        fullname: el.applicantName,
+        appliedAt: el.appliedAt,
         gender: el.gender,
       },
       event: {
-        id: el.event_id,
-        name: el.event_name,
+        id: el.eventId,
+        name: el.eventName,
       },
       position: {
-        id: el.position_id,
-        name: el.position_name,
+        id: el.positionId,
+        name: el.positionName,
       },
     };
   });
