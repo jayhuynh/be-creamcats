@@ -13,6 +13,8 @@ tags:
   description: "Authentication & authorisation"
 - name: "events"
   description: "Events"
+- name: "images"
+  description: "Images"
 - name: "organizations"
   description: "Organization"
 - name: "positions"
@@ -353,6 +355,35 @@ paths:
                 $ref: "#/components/schemas/Event"
         "404":
           description: "NotFoundError: Event not found"
+  /images:
+    post:
+      tags:
+      - "images"
+      summary: "Upload images"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+            encoding:
+              images:
+                contentType: image/png, image/jpeg
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: array
+                items:
+                  type: "string"
+                  description: "public url of an image"
   /organizations/{organizationId}:
     get:
       tags:
