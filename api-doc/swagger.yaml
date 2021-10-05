@@ -468,6 +468,50 @@ paths:
         required: true
         schema:
           type: "integer"
+      - name: "gender"
+        in: "query"
+        description: "gender of the applicant"
+        required: false
+        schema:
+          type: "string"
+          enum:
+          - "male"
+          - "female"
+          - "other"
+      - name: "eventId"
+        in: "query"
+        description: "event id"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "positionId"
+        in: "query"
+        description: "position id"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "search"
+        in: "query"
+        description: "search term - search over applicant name, event name, and position name"
+        required: false
+        schema:
+          type: "string"
+      - name: "sort"
+        in: "query"
+        description: "attribute to sort by"
+        required: false
+        schema:
+          type: "string"
+          enum: [ 'applicantName', 'appliedAt' ]
+      - name: "order"
+        in: "query"
+        description: "sort order"
+        required: false
+        schema:
+          type: "string"
+          enum: [ 'asc', 'desc' ]
       - name: "limit"
         in: "query"
         required: false
