@@ -355,6 +355,30 @@ paths:
                 $ref: "#/components/schemas/Event"
         "404":
           description: "NotFoundError: Event not found"
+  /events/{eventId}/positions:
+    get:
+      tags:
+      - "events"
+      - "positions"
+      summary: "Get positions of an event"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "id of event"
+        required: true
+        schema:
+          type: "integer"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Position"
+        "404":
+          description: "NotFoundError: Event not found"
   /images:
     post:
       tags:
@@ -653,7 +677,7 @@ paths:
         schema:
           type: "number"
           format: "integer"
-      - name: "addresss"
+      - name: "address"
         required: false
         in: "query"
         description: "an address - use either this, or lng and lat"
