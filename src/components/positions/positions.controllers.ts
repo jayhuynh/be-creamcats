@@ -3,55 +3,83 @@ import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
 import fetch from "node-fetch";
 
-import { BadRequestError, NotFoundError } from "../errors";
+import {
+  BadRequestError,
+  DatabaseError,
+  NotFoundError,
+  SchemaError,
+} from "../errors";
 import { prisma } from "../../utils";
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const querySchema = Joi.object({
-      sort: Joi.string().valid("applications", "distance", "timecreated"),
-      order: Joi.string().valid("asc", "desc"),
-      gender: Joi.string().valid("male", "female"),
-      tags: Joi.array(),
-      dayfrom: Joi.date(),
-      dayto: Joi.date(),
-      limit: Joi.number().integer(),
-      offset: Joi.number().integer(),
-      address: Joi.string(),
-      lng: Joi.number(),
-      lat: Joi.number(),
-      within: Joi.number(),
-    })
-      .with("sort", "order")
-      .with("lng", "lat")
-      .nand("address", "lng");
-
-    const { error, value: query } = querySchema.validate(req.query);
-
-    if (error) {
-      return next(new BadRequestError(error.message));
+    try {
+      if (req.params.eventId) {
+        const eventId = await Joi.number()
+          .integer()
+          .validateAsync(req.params.eventId)
+          .catch((e) => {
+            throw new SchemaError(e.message);
+          });
+        const result = await prisma.position.findMany({
+          where: {
+            eventId: eventId,
+          },
+          include: {
+            tags: true,
+          },
+        });
+        return res.status(200).json(result);
+      } else {
+        const result = await getPositionsWithFilter(req);
+        return res.status(200).json(result);
+      }
+    } catch (e) {
+      return next(e);
     }
+  }
+);
 
-    const sort = query.sort;
-    const order = query.order;
-    const gender = query.gender?.toUpperCase();
-    const tags = query.tags;
-    const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
-    const dayfrom = parseDay(query.dayfrom);
-    const dayto = parseDay(query.dayto);
-    const limit = query.limit;
-    const offset = query.offset;
-    let address: any;
-    if (!query.address || !(address = await queryAddress(query.address))) {
-      return next(
-        new NotFoundError(`Address ${query.address} does not exist.`)
-      );
-    }
-    const lng = query.lng || address.lng;
-    const lat = query.lat || address.lat;
-    const within = query.within;
+const getPositionsWithFilter = async (req: Request) => {
+  const querySchema = Joi.object({
+    sort: Joi.string().valid("applications", "distance", "timecreated"),
+    order: Joi.string().valid("asc", "desc"),
+    gender: Joi.string().valid("male", "female"),
+    tags: Joi.array(),
+    dayfrom: Joi.date(),
+    dayto: Joi.date(),
+    limit: Joi.number().integer(),
+    offset: Joi.number().integer(),
+    address: Joi.string(),
+    lng: Joi.number(),
+    lat: Joi.number(),
+    within: Joi.number(),
+  })
+    .with("sort", "order")
+    .with("lng", "lat")
+    .nand("address", "lng");
 
-    let sql = `
+  const query = await querySchema.validateAsync(req.query).catch((e) => {
+    throw new SchemaError(e.message);
+  });
+  const sort = query.sort;
+  const order = query.order;
+  const gender = query.gender?.toUpperCase();
+  const tags = query.tags;
+  const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
+  const dayfrom = parseDay(query.dayfrom);
+  const dayto = parseDay(query.dayto);
+  const limit = query.limit;
+  const offset = query.offset;
+  let address: any;
+  if (!query.address || !(address = await queryAddress(query.address))) {
+    throw new NotFoundError(`Address ${query.address} does not exist.`);
+  }
+  const lng = query.lng || address.lng;
+  const lat = query.lat || address.lat;
+  const within = query.within;
+
+  let sql = `
       SELECT
         pos.id as id,
         pos.name as name,
@@ -77,13 +105,12 @@ export const getPositions: RequestHandler = expressAsyncHandler(
           FROM "Position" as pos, "Event" as eve
           WHERE pos."eventId" = eve.id
         ) AS pe ON pos.id = pe.pos_id
-      WHERE
     `;
 
-    let conds = [];
+  let conds: string[] = [];
 
-    if (tags) {
-      let tagCond = `
+  if (tags) {
+    let tagCond = `
         pos.id IN (
           SELECT pos.id as pos_id
           FROM "Position" as pos, "_PositionToTag" as ptot, "Tag" as tag
@@ -91,92 +118,93 @@ export const getPositions: RequestHandler = expressAsyncHandler(
             AND ptot."B" = tag.id
             AND (
       `;
-      for (let i = 0; i < tags.length; i++) {
-        if (i !== 0) tagCond += ` OR `;
-        tagCond += `
+    for (let i = 0; i < tags.length; i++) {
+      if (i !== 0) tagCond += ` OR `;
+      tagCond += `
               tag.name = '${tags[i]}'
         `;
-      }
-      tagCond += `
+    }
+    tagCond += `
             )
           GROUP BY pos_id
           HAVING COUNT(pos.id) > 0
         )
       `;
-      conds.push(tagCond);
-    }
+    conds.push(tagCond);
+  }
 
-    if (gender) {
-      conds.push(`
+  if (gender) {
+    conds.push(`
         pos.gender = '${gender}'
       `);
-    }
-    if (dayfrom) {
-      conds.push(`
+  }
+  if (dayfrom) {
+    conds.push(`
         pe.eve_st >= '${dayfrom}'
       `);
-    }
-    if (dayto) {
-      conds.push(`
+  }
+  if (dayto) {
+    conds.push(`
         pe.eve_et <= '${dayto}'
       `);
-    }
-    if (within) {
-      conds.push(`
+  }
+  if (within) {
+    conds.push(`
         ST_DWITHIN(pe.coor, ST_MAKEPOINT(${lng}, ${lat}), ${within})
       `);
-    }
+  }
 
-    sql += conds.join(" AND ");
+  if (conds.length) {
+    sql += `WHERE ${conds.join(" AND ")}`;
+  }
 
-    if (sort === "applications") {
-      sql += `
+  if (sort === "applications") {
+    sql += `
         ORDER BY "applicationCount" ${order}
       `;
-    } else if (sort === "distance") {
-      sql += `
+  } else if (sort === "distance") {
+    sql += `
         ORDER BY pe.coor <-> ST_MakePoint(${lng}, ${lat})::geography ${order}
       `;
-    } else if (sort === "timecreated") {
-      sql += `
+  } else if (sort === "timecreated") {
+    sql += `
         ORDER BY pos."timeCreated" ${order}
       `;
-    }
-
-    const countSql = `SELECT COUNT(*) FROM ( ${sql} ) as ct;`;
-
-    sql += limit ? `LIMIT ${limit}` : "";
-    sql += offset ? `OFFSET ${offset}` : "";
-
-    let total;
-    let data;
-
-    try {
-      total = await prisma.$queryRaw(countSql);
-      data = await prisma.$queryRaw(sql);
-    } catch (e) {
-      return next(e);
-    }
-
-    for (let position of data) {
-      const queriedPosition = await prisma.position.findUnique({
-        where: {
-          id: position.id,
-        },
-        include: {
-          tags: true,
-        },
-      });
-      Object.assign(position, queriedPosition);
-      position.tags = position.tags.map((tag: any) => tag.name);
-    }
-
-    return res.status(200).json({
-      total: total[0].count,
-      data: data,
-    });
   }
-);
+
+  const countSql = `SELECT COUNT(*) FROM ( ${sql} ) as ct;`;
+
+  sql += limit ? `LIMIT ${limit}` : "";
+  sql += offset ? `OFFSET ${offset}` : "";
+
+  let total;
+  let data;
+
+  try {
+    total = await prisma.$queryRaw(countSql);
+    data = await prisma.$queryRaw(sql);
+  } catch (e) {
+    throw new DatabaseError(e.message);
+  }
+
+  for (let position of data) {
+    const queriedPosition = await prisma.position.findUnique({
+      where: {
+        id: position.id,
+      },
+      include: {
+        tags: true,
+      },
+    });
+    Object.assign(position, queriedPosition);
+    position.tags = position.tags.map((tag: any) => tag.name);
+  }
+
+  return {
+    total: total[0].count,
+    data: data,
+  };
+};
 
 const queryAddress = async (address: string): Promise<Object | null> => {
   const key = process.env.GEO_API_KEY;
