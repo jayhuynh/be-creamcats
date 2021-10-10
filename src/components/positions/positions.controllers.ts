@@ -8,7 +8,6 @@ import {
   DatabaseError,
   NotFoundError,
   SchemaError,
-  ConflictError,
 } from "../errors";
 import { prisma } from "../../utils";
 
