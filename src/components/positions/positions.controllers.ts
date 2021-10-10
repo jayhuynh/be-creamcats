@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 
 import {
   BadRequestError,
+  ConflictError,
   DatabaseError,
   NotFoundError,
   SchemaError,
@@ -260,13 +261,15 @@ export const createPosition = expressAsyncHandler(
       gender: Joi.string().valid("male", "female", "other"),
       thumbnail: Joi.string(),
       eventId: Joi.number().integer(),
+      tags: Joi.array().items(Joi.string()),
     });
     const { error, value } = schema.validate(req.body);
     if (error) {
       return next(new SchemaError(error.message));
     }
 
-    const { name, desc, requirements, gender, thumbnail, eventId } = value;
+    const { name, desc, requirements, gender, thumbnail, eventId, tags } =
+      value;
 
     let existingEvent: Event;
     try {
@@ -280,6 +283,17 @@ export const createPosition = expressAsyncHandler(
       return next(new ConflictError("Event with the id does not exist"));
     }
 
+    const tagIds = tags.map(async (tagName: string) => {
+      const tag = await prisma.tag.findFirst({
+        where: {
+          name: tagName,
+        },
+      });
+      return {
+        id: tag.id,
+      };
+    });
+
     try {
       await prisma.position.create({
         data: {
@@ -288,7 +302,14 @@ export const createPosition = expressAsyncHandler(
           requirements: requirements,
           gender: gender,
           thumbnail: thumbnail,
-          eventId: eventId,
+          Event: {
+            connect: {
+              id: eventId,
+            },
+          },
+          tags: {
+            connect: tagIds,
+          },
         },
       });
     } catch (e) {
