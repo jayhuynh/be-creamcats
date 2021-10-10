@@ -10,6 +10,7 @@ import {
   SchemaError,
 } from "../errors";
 import { prisma } from "../../utils";
+import { Event } from "@prisma/client";
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -266,6 +267,18 @@ export const createPosition = expressAsyncHandler(
     }
 
     const { name, desc, requirements, gender, thumbnail, eventId } = value;
+
+    let existingEvent: Event;
+    try {
+      existingEvent = await prisma.event.findUnique({
+        where: { id: eventId },
+      });
+    } catch (e) {
+      return next(e);
+    }
+    if (!existingEvent) {
+      return next(new ConflictError("Event with the id does not exist"));
+    }
 
     try {
       await prisma.position.create({

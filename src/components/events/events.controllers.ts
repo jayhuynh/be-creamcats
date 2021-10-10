@@ -1,4 +1,4 @@
-import { Event, Prisma } from "@prisma/client";
+import { Event, Prisma, Organization } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
@@ -10,6 +10,7 @@ import {
   BadRequestError,
   DatabaseError,
   SchemaError,
+  ConflictError,
 } from "../errors";
 
 export const getEvents = expressAsyncHandler(
@@ -123,6 +124,18 @@ export const createEvent = expressAsyncHandler(
     }
 
     const { name, desc, startTime, endTime, location, organizationId } = value;
+
+    let existingOrganization: Organization;
+    try {
+      existingOrganization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+      });
+    } catch (e) {
+      return next(e);
+    }
+    if (!existingOrganization) {
+      return next(new ConflictError("Organization with the id does not exist"));
+    }
 
     try {
       await prisma.event.create({
