@@ -145,7 +145,11 @@ export const createEvent = expressAsyncHandler(
           startTime: startTime,
           endTime: endTime,
           location: location,
-          organizationId: organizationId,
+          Organization: {
+            connect: {
+              id: organizationId,
+            },
+          },
         },
       });
     } catch (e) {
