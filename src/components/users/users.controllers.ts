@@ -4,7 +4,13 @@ import expressAsyncHandler from "express-async-handler";
 
 import { AuthorizedRequest } from "../../utils/express";
 import { prisma } from "../../utils";
-import { AuthError, SchemaError, ConflictError } from "../errors";
+import {
+  AuthError,
+  SchemaError,
+  ConflictError,
+  BadRequestError,
+  NotFoundError,
+} from "../errors";
 import Joi from "joi";
 
 export const getUserProfileOfMe = expressAsyncHandler(
@@ -76,5 +82,28 @@ export const updateUserProfile = expressAsyncHandler(
     return res.status(200).json({
       message: "User Profile successfully updated",
     });
+  }
+);
+
+export const getUserById = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { error, value: id } = Joi.number().integer().validate(req.params.id);
+
+    if (error) {
+      return next(new BadRequestError(error.message));
+    }
+
+    try {
+      const user: User = await prisma.user.findUnique({
+        where: { id },
+      });
+      if (user) {
+        return res.status(200).json(user);
+      } else {
+        return next(new NotFoundError(`User with id ${id} not found`));
+      }
+    } catch (e) {
+      return next(e);
+    }
   }
 );

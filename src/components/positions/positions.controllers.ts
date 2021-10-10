@@ -8,6 +8,7 @@ import {
   DatabaseError,
   NotFoundError,
   SchemaError,
+  ConflictError,
 } from "../errors";
 import { prisma } from "../../utils";
 
@@ -247,5 +248,43 @@ export const getPositionById = expressAsyncHandler(
     } catch (e) {
       return next(e);
     }
+  }
+);
+
+export const createPosition = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const schema = Joi.object({
+      name: Joi.string(),
+      desc: Joi.string(),
+      requirements: Joi.string(),
+      gender: Joi.string().valid("male", "female", "other"),
+      thumbnail: Joi.string(),
+      eventId: Joi.number().integer(),
+    });
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      return next(new SchemaError(error.message));
+    }
+
+    const { name, desc, requirements, gender, thumbnail, eventId } = value;
+
+    try {
+      await prisma.position.create({
+        data: {
+          name: name,
+          desc: desc,
+          requirements: requirements,
+          gender: gender,
+          thumbnail: thumbnail,
+          eventId: eventId,
+        },
+      });
+    } catch (e) {
+      return next(e);
+    }
+
+    return res.status(200).json({
+      message: "Position successfully created",
+    });
   }
 );
