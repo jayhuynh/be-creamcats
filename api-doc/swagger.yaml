@@ -429,6 +429,20 @@ paths:
                 $ref: "#/components/schemas/Organization"
         "404":
           description: "NotFoundError: Organization not found"
+  /organizations/me:
+    get:
+      tags:
+      - "organizations"
+      summary: "Get organization of current account"
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Organization"
   /organizations/{organizationId}/events:
     get:
       tags:

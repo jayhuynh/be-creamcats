@@ -286,6 +286,9 @@ export const authorizeAccount = expressAsyncHandler(
   }
 );
 
+/**
+ * Authorize a volunteer account
+ **/
 export const authorizeUser = expressAsyncHandler(
   async (req: AuthorizedRequest, _res: Response, next: NextFunction) => {
     let decoded;
@@ -319,6 +322,9 @@ export const authorizeUser = expressAsyncHandler(
   }
 );
 
+/**
+ * Authorize an organization account
+ **/
 export const authorizeOrganization = expressAsyncHandler(
   async (req: AuthorizedRequest, _res: Response, next: NextFunction) => {
     let decoded;

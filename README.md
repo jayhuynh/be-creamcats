@@ -2,8 +2,13 @@
 
 - [CreamCats - Backend App](#creamcats---backend-app)
   - [Usage](#usage)
+  - [Mock Accounts](#mock-accounts)
+    - [User/Volunteer](#uservolunteer)
+    - [Organization](#organization)
   - [API Doc](#api-doc)
     - [View the API doc](#view-the-api-doc)
+  - [Known issues](#known-issues)
+    - [Permission denied for `prisma/migrations` directories](#permission-denied-for-prismamigrations-directories)
   - [Documentation](#documentation)
   - [Workflow](#workflow)
 

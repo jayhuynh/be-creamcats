@@ -1,5 +1,5 @@
 import express from "express";
-import { authorizeUser } from "../auth";
+import { authorizeOrganization } from "../auth";
 import {
   getOrganizationById,
   getOrgProfile,
@@ -12,7 +12,7 @@ const router = express.Router();
 router.use("/:organizationId/events", eventsRouter);
 router.use("/:organizationId/applications", applicationRouter);
 
-router.route("/me").get(authorizeUser, getOrgProfile);
+router.route("/me").get(authorizeOrganization, getOrgProfile);
 router.route("/:id").get(getOrganizationById);
 
 export { router };
