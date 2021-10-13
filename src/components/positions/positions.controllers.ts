@@ -5,11 +5,13 @@ import fetch from "node-fetch";
 
 import {
   BadRequestError,
+  ConflictError,
   DatabaseError,
   NotFoundError,
   SchemaError,
 } from "../errors";
 import { prisma } from "../../utils";
+import { Event } from "@prisma/client";
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -247,5 +249,75 @@ export const getPositionById = expressAsyncHandler(
     } catch (e) {
       return next(e);
     }
+  }
+);
+
+export const createPosition = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const schema = Joi.object({
+      name: Joi.string(),
+      desc: Joi.string(),
+      requirements: Joi.string(),
+      gender: Joi.string().valid("male", "female", "other"),
+      thumbnail: Joi.string(),
+      eventId: Joi.number().integer(),
+      tags: Joi.array().items(Joi.string()),
+    });
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      return next(new SchemaError(error.message));
+    }
+
+    const { name, desc, requirements, gender, thumbnail, eventId, tags } =
+      value;
+
+    let existingEvent: Event;
+    try {
+      existingEvent = await prisma.event.findUnique({
+        where: { id: eventId },
+      });
+    } catch (e) {
+      return next(e);
+    }
+    if (!existingEvent) {
+      return next(new ConflictError("Event with the id does not exist"));
+    }
+
+    const tagIds = tags.map(async (tagName: string) => {
+      const tag = await prisma.tag.findFirst({
+        where: {
+          name: tagName,
+        },
+      });
+      return {
+        id: tag.id,
+      };
+    });
+
+    try {
+      await prisma.position.create({
+        data: {
+          name: name,
+          desc: desc,
+          requirements: requirements,
+          gender: gender,
+          thumbnail: thumbnail,
+          Event: {
+            connect: {
+              id: eventId,
+            },
+          },
+          tags: {
+            connect: tagIds,
+          },
+        },
+      });
+    } catch (e) {
+      return next(e);
+    }
+
+    return res.status(200).json({
+      message: "Position successfully created",
+    });
   }
 );

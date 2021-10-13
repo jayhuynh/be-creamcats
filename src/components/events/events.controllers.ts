@@ -1,7 +1,8 @@
-import { Event, Prisma } from "@prisma/client";
+import { Event, Prisma, Organization } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
+import { start } from "repl";
 
 import { OrganizationRequest, prisma } from "../../utils";
 import {
@@ -9,6 +10,7 @@ import {
   BadRequestError,
   DatabaseError,
   SchemaError,
+  ConflictError,
 } from "../errors";
 
 export const getEvents = expressAsyncHandler(
@@ -103,5 +105,59 @@ export const getEventById = expressAsyncHandler(
     } catch (e) {
       return next(e);
     }
+  }
+);
+
+export const createEvent = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const schema = Joi.object({
+      name: Joi.string(),
+      desc: Joi.string(),
+      startTime: Joi.date(),
+      endTime: Joi.date(),
+      location: Joi.string(),
+      organizationId: Joi.number().integer(),
+    });
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      return next(new SchemaError(error.message));
+    }
+
+    const { name, desc, startTime, endTime, location, organizationId } = value;
+
+    let existingOrganization: Organization;
+    try {
+      existingOrganization = await prisma.organization.findUnique({
+        where: { id: organizationId },
+      });
+    } catch (e) {
+      return next(e);
+    }
+    if (!existingOrganization) {
+      return next(new ConflictError("Organization with the id does not exist"));
+    }
+
+    try {
+      await prisma.event.create({
+        data: {
+          name: name,
+          desc: desc,
+          startTime: startTime,
+          endTime: endTime,
+          location: location,
+          Organization: {
+            connect: {
+              id: organizationId,
+            },
+          },
+        },
+      });
+    } catch (e) {
+      return next(e);
+    }
+
+    return res.status(200).json({
+      message: "Event successfully created",
+    });
   }
 );
