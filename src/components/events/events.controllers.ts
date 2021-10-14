@@ -2,7 +2,6 @@ import { Event, Prisma, Organization } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
-import { start } from "repl";
 
 import { OrganizationRequest, prisma } from "../../utils";
 import {
@@ -85,29 +84,6 @@ export const getEvents = expressAsyncHandler(
   }
 );
 
-export const getEventById = expressAsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { error, value: id } = Joi.number().integer().validate(req.params.id);
-
-    if (error) {
-      return next(new BadRequestError(error.message));
-    }
-
-    try {
-      const event: Event = await prisma.event.findUnique({
-        where: { id },
-      });
-      if (event) {
-        return res.status(200).json(event);
-      } else {
-        return next(new NotFoundError(`Event with id ${id} not found`));
-      }
-    } catch (e) {
-      return next(e);
-    }
-  }
-);
-
 export const createEvent = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const schema = Joi.object({
@@ -159,5 +135,78 @@ export const createEvent = expressAsyncHandler(
     return res.status(200).json({
       message: "Event successfully created",
     });
+  }
+);
+
+export const getEventById = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { error, value: id } = Joi.number().integer().validate(req.params.id);
+
+    if (error) {
+      return next(new BadRequestError(error.message));
+    }
+
+    try {
+      const event: Event = await prisma.event.findUnique({
+        where: { id },
+      });
+      if (event) {
+        return res.status(200).json(event);
+      } else {
+        return next(new NotFoundError(`Event with id ${id} not found`));
+      }
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
+
+export const updateEventById = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const eventId = await Joi.number()
+        .integer()
+        .validateAsync(req.params.id)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const querySchema = Joi.object({
+        name: Joi.string(),
+        location: Joi.string(),
+        desc: Joi.string(),
+        starttime: Joi.string().isoDate(),
+        endtime: Joi.string().isoDate(),
+      });
+
+      const { name, location, desc, starttime, endtime } = await querySchema
+        .validateAsync(req.query)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const event: Event = await prisma.event.findUnique({
+        where: { id: eventId },
+      });
+
+      if (!event) {
+        throw new NotFoundError(`Event with id ${eventId} not found`);
+      }
+
+      const updatedEvent: Event = await prisma.event.update({
+        where: { id: eventId },
+        data: {
+          name: name ? name : undefined,
+          location: location ? location : undefined,
+          desc: desc ? desc : undefined,
+          startTime: starttime ? starttime : undefined,
+          endTime: endtime ? endtime : undefined,
+        },
+      });
+
+      res.status(200).json(updatedEvent);
+    } catch (e) {
+      return next(e);
+    }
   }
 );

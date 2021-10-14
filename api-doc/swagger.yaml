@@ -387,6 +387,53 @@ paths:
                 $ref: "#/components/schemas/Event"
         "404":
           description: "NotFoundError: Event not found"
+    patch:
+      tags:
+      - "events"
+      summary: "Update an event with given id"
+      parameters:
+      - name: "eventId"
+        in: "path"
+        description: "id of event"
+        required: true
+        schema:
+          type: "integer"
+      - name: "name"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+      - name: "desc"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+      - name: "location"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+      - name: "startdate"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          format: "date-time"
+      - name: "enddate"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          format: "date-time"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: "NotFoundError: Event not found"
   /events/{eventId}/positions:
     get:
       tags:

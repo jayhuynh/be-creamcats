@@ -350,7 +350,7 @@ export const updateApplicationById = expressAsyncHandler(
 
       res.status(200).json(updatedApplication);
     } catch (e) {
-      next(e);
+      return next(e);
     }
   }
 );
