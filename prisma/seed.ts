@@ -118,6 +118,7 @@ const genOrganizations = async () => {
           ...organization.events.map((event: any) => genEvent(event))
         ),
       },
+      profilePic: faker.image.avatar(),
     };
   };
 
