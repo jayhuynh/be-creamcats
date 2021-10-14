@@ -324,9 +324,6 @@ export const updateApplicationById = expressAsyncHandler(
         feedback: Joi.string(),
       });
 
-      console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      console.log(`Status: ${req.query.status}`);
-
       const { status, feedback } = await querySchema
         .validateAsync(req.query)
         .catch((e) => {
