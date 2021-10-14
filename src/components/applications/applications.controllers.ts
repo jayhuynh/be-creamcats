@@ -36,6 +36,59 @@ export const getApplications = expressAsyncHandler(
   }
 );
 
+export const createApplication = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const schema = Joi.object({
+      userId: Joi.number().integer().required(),
+      positionId: Joi.number().integer().required(),
+      notes: Joi.string(),
+    });
+    const { error, value } = schema.validate(req.body);
+    if (error) {
+      return next(new SchemaError(error.message));
+    }
+
+    const { userId, positionId, notes } = value;
+
+    let existingApplication: Application;
+    try {
+      existingApplication = await prisma.application.findUnique({
+        where: {
+          userId_positionId: {
+            userId,
+            positionId,
+          },
+        },
+      });
+    } catch (e) {
+      return next(e);
+    }
+    if (existingApplication) {
+      return next(
+        new ConflictError(
+          "Application with the same userId and positionId already exists"
+        )
+      );
+    }
+
+    try {
+      await prisma.application.create({
+        data: {
+          userId,
+          positionId,
+          notes,
+        },
+      });
+    } catch (e) {
+      return next(e);
+    }
+
+    return res.status(200).json({
+      message: "Application successfully added",
+    });
+  }
+);
+
 export const getApplicationsOfOrganization = async (
   organizationId: number,
   query: any
@@ -189,29 +242,6 @@ export const getApplicationsOfOrganization = async (
   };
 };
 
-export const getApplicationById = expressAsyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { error, value: id } = Joi.number().integer().validate(req.params.id);
-
-    if (error) {
-      return next(new BadRequestError(error.message));
-    }
-
-    try {
-      const application: Application = await prisma.application.findUnique({
-        where: { id },
-      });
-      if (application) {
-        return res.status(200).json(application);
-      } else {
-        return next(new NotFoundError(`Application with id ${id} not found`));
-      }
-    } catch (e) {
-      return next(e);
-    }
-  }
-);
-
 export const getApplicationsOfMe = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
     if (req.accountType !== "volunteer") {
@@ -256,55 +286,74 @@ export const getApplicationCountOfMe = expressAsyncHandler(
   }
 );
 
-export const addApplication = expressAsyncHandler(
+export const getApplicationById = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const schema = Joi.object({
-      userId: Joi.number().integer().required(),
-      positionId: Joi.number().integer().required(),
-      notes: Joi.string(),
-    });
-    const { error, value } = schema.validate(req.body);
+    const { error, value: id } = Joi.number().integer().validate(req.params.id);
+
     if (error) {
-      return next(new SchemaError(error.message));
+      return next(new BadRequestError(error.message));
     }
 
-    const { userId, positionId, notes } = value;
-
-    let existingApplication: Application;
     try {
-      existingApplication = await prisma.application.findUnique({
-        where: {
-          userId_positionId: {
-            userId,
-            positionId,
-          },
-        },
+      const application: Application = await prisma.application.findUnique({
+        where: { id },
       });
+      if (application) {
+        return res.status(200).json(application);
+      } else {
+        return next(new NotFoundError(`Application with id ${id} not found`));
+      }
     } catch (e) {
       return next(e);
     }
-    if (existingApplication) {
-      return next(
-        new ConflictError(
-          "Application with the same userId and positionId already exists"
-        )
-      );
-    }
+  }
+);
 
+export const updateApplicationById = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await prisma.application.create({
+      const applicationId = await Joi.number()
+        .integer()
+        .validateAsync(req.params.id)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const querySchema = Joi.object({
+        status: Joi.string().valid("PENDING", "ACCEPTED", "REJECTED"),
+        feedback: Joi.string(),
+      });
+
+      console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      console.log(`Status: ${req.query.status}`);
+
+      const { status, feedback } = await querySchema
+        .validateAsync(req.query)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const application: Application = await prisma.application.findUnique({
+        where: { id: applicationId },
+      });
+
+      if (!application) {
+        throw new NotFoundError(
+          `Application with id ${applicationId} not found`
+        );
+      }
+
+      const updatedApplication: Application = await prisma.application.update({
+        where: { id: applicationId },
         data: {
-          userId,
-          positionId,
-          notes,
+          status: status ? status : undefined,
+          feedback: feedback ? feedback : undefined,
         },
       });
-    } catch (e) {
-      return next(e);
-    }
 
-    return res.status(200).json({
-      message: "Application successfully added",
-    });
+      res.status(200).json(updatedApplication);
+    } catch (e) {
+      next(e);
+    }
   }
 );

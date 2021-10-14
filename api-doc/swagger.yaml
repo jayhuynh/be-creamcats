@@ -237,6 +237,38 @@ paths:
           description: "ConflictError: application (with the same userId and positionId) already exists"
         "422":
           description: "SchemaError"
+    patch:
+      tags:
+      - "applications"
+      summary: "Update an application with given id"
+      parameters:
+      - name: "applicationId"
+        in: "path"
+        schema:
+          type: "integer"
+          minimum: 1
+        required: true
+      - name: "status"
+        in: "query"
+        schema:
+          type: "string"
+          enum:
+          - "PENDING"
+          - "ACCEPTED"
+          - "REJECTED"
+        required: false
+      - name: "feedback"
+        in: "query"
+        schema:
+          type: "string"
+        required: false
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                $ref: "#/components/schemas/Application"
   /applications/me:
     get:
       tags:
