@@ -76,12 +76,13 @@ model Application {
 }
 
 model Post {
-  id        Int    @id @default(autoincrement())
-  title     String
-  thumbnail String
-  content   String
-  User      User?  @relation(fields: [userId], references: [id])
-  userId    Int?
+  id          Int      @id @default(autoincrement())
+  title       String
+  thumbnail   String
+  content     String
+  timeCreated DateTime @updatedAt
+  User        User?    @relation(fields: [userId], references: [id])
+  userId      Int?
 }
 
 model Tag {
