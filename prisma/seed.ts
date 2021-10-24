@@ -43,6 +43,7 @@ const genPost = (): Prisma.PostCreateInput => {
     title: faker.lorem.words(faker.datatype.number({ min: 3, max: 5 })),
     thumbnail: faker.image.city(),
     content: faker.lorem.paragraph(),
+    timeCreated: faker.date.past(),
   };
 };
 

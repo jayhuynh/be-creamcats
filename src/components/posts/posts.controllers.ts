@@ -4,7 +4,68 @@ import expressAsyncHandler from "express-async-handler";
 import { AuthorizedRequest } from "../../utils/express";
 import Joi from "joi";
 import { prisma } from "../../utils";
-import { AuthError, SchemaError, ConflictError } from "../errors";
+import {
+  AuthError,
+  SchemaError,
+  ConflictError,
+  DatabaseError,
+} from "../errors";
+
+export const getPosts = expressAsyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const querySchema = Joi.object({
+        sort: Joi.string().valid("timeCreated"),
+        order: Joi.string().valid("asc", "desc"),
+        limit: Joi.number().integer(),
+        offset: Joi.number().integer(),
+      }).with("sort", "order");
+      const query = await querySchema.validateAsync(req.query).catch((e) => {
+        throw new SchemaError(e.message);
+      });
+
+      let orderBy = undefined;
+
+      if (query.sort) {
+        if (query.sort === "timeCreated") {
+          orderBy = {
+            timeCreated: query.order,
+          };
+        }
+      }
+
+      const total = await prisma.post
+        .aggregate({
+          _count: {
+            id: true,
+          },
+        })
+        .then((result) => result._count.id)
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      const posts = await prisma.post
+        .findMany({
+          orderBy: orderBy,
+          take: query.limit,
+          skip: query.offset,
+        })
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      const result = {
+        total: total,
+        data: posts,
+      };
+
+      return res.status(200).json(result);
+    } catch (e) {
+      return next(e);
+    }
+  }
+);
 
 export const getPostsOfMe = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
