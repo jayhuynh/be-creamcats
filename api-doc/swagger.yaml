@@ -696,6 +696,43 @@ paths:
                         position:
                           type: "object"
   /positions:
+    post:
+      tags:
+      - "positions"
+      summary: "Create a new position"
+      requestBody:
+        required: true
+        content:
+          "applications/json":
+            schema:
+              type: "object"
+              properties:
+                name:
+                  type: "string"
+                desc:
+                  type: "string"
+                gender:
+                  type: "string"
+                  enum:
+                  - "male"
+                  - "female"
+                  - "other"
+                requirements:
+                  type: "string"
+                thumbnail:
+                  type: "string"
+                eventId:
+                  type: "number"
+                  format: "integer"
+                tags:
+                  type: "array"
+                  items:
+                    type: "string"
+      responses:
+        "200":
+          description: "successful"
+        "422":
+          description: "SchemaError"
     get:
       tags:
       - "positions"
