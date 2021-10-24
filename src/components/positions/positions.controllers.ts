@@ -300,7 +300,7 @@ export const createPosition = expressAsyncHandler(
           name: name,
           desc: desc,
           requirements: requirements,
-          gender: gender,
+          gender: gender.toUpperCase(),
           thumbnail: thumbnail,
           Event: {
             connect: {
