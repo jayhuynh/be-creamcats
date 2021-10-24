@@ -89,6 +89,7 @@ export const createEvent = expressAsyncHandler(
     const schema = Joi.object({
       name: Joi.string(),
       desc: Joi.string(),
+      gallery: Joi.array().items(Joi.string()),
       startTime: Joi.date(),
       endTime: Joi.date(),
       location: Joi.string(),
@@ -99,7 +100,15 @@ export const createEvent = expressAsyncHandler(
       return next(new SchemaError(error.message));
     }
 
-    const { name, desc, startTime, endTime, location, organizationId } = value;
+    const {
+      name,
+      desc,
+      gallery,
+      startTime,
+      endTime,
+      location,
+      organizationId,
+    } = value;
 
     let existingOrganization: Organization;
     try {
@@ -118,6 +127,7 @@ export const createEvent = expressAsyncHandler(
         data: {
           name: name,
           desc: desc,
+          gallery: gallery,
           startTime: startTime,
           endTime: endTime,
           location: location,
