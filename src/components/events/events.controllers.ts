@@ -121,9 +121,9 @@ export const createEvent = expressAsyncHandler(
     if (!existingOrganization) {
       return next(new ConflictError("Organization with the id does not exist"));
     }
-
+    let createdEvent: Event;
     try {
-      await prisma.event.create({
+      createdEvent = await prisma.event.create({
         data: {
           name: name,
           desc: desc,
@@ -142,9 +142,7 @@ export const createEvent = expressAsyncHandler(
       return next(e);
     }
 
-    return res.status(200).json({
-      message: "Event successfully created",
-    });
+    return res.status(200).json({ createdEvent });
   }
 );
 

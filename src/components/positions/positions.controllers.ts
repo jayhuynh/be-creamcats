@@ -11,7 +11,7 @@ import {
   SchemaError,
 } from "../errors";
 import { prisma } from "../../utils";
-import { Event } from "@prisma/client";
+import { Event, Position } from "@prisma/client";
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -283,19 +283,21 @@ export const createPosition = expressAsyncHandler(
       return next(new ConflictError("Event with the id does not exist"));
     }
 
-    const tagIds = tags.map(async (tagName: string) => {
-      const tag = await prisma.tag.findFirst({
-        where: {
-          name: tagName,
-        },
-      });
-      return {
-        id: tag.id,
-      };
-    });
-
+    const tagIds = await Promise.all(
+      tags.map(async (tagName: string) => {
+        const tag = await prisma.tag.findFirst({
+          where: {
+            name: tagName,
+          },
+        });
+        return {
+          id: tag.id,
+        };
+      })
+    );
+    let createdPosition: Position;
     try {
-      await prisma.position.create({
+      createdPosition = await prisma.position.create({
         data: {
           name: name,
           desc: desc,
@@ -316,8 +318,6 @@ export const createPosition = expressAsyncHandler(
       return next(e);
     }
 
-    return res.status(200).json({
-      message: "Position successfully created",
-    });
+    return res.status(200).json({ createdPosition });
   }
 );
