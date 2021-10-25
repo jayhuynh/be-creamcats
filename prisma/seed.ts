@@ -100,7 +100,8 @@ const genOrganizationCreateInput = async (
   const email =
     organization.email ??
     "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
-  const password = organization.password ?? faker.internet.password;
+  const password: string = organization.password ?? faker.internet.password();
+
   return {
     name: name,
     email: email,
