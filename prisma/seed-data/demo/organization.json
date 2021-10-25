@@ -2,6 +2,8 @@
   {
     "organization": {
       "name": "Wesley Mission Queensland",
+      "email": "contact@wesleymission.qld.au",
+      "password": "123456",
       "profilePic": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961935OrgLogo.jpg",
       "desc": "Wesley Mission Queensland is a leading not-for-profit organisation that has been supporting Queenslanders for over 100 years. Offering community support, aged care, child care, and retirement living, the work of Wesley Mission Queensland reaches throughout Queensland encouraging social inclusion and strengthening communities.",
       "events": [
@@ -14,9 +16,7 @@
           "positions": [
             {
               "name": "Brisbane Relief Hub - Emergency Relief Volunteer",
-              "tags": [
-                "Community Services"
-              ]
+              "tags": ["Community Services"]
             }
           ]
         },
@@ -29,9 +29,7 @@
           "positions": [
             {
               "name": "Volunteers building connections with young adults with disabilities",
-              "tags": [
-                "Community Services"
-              ]
+              "tags": ["Community Services"]
             }
           ]
         },
@@ -44,9 +42,7 @@
           "positions": [
             {
               "name": "Stellar Arts - Percussion Program Volunteer",
-              "tags": [
-                "Community Services"
-              ]
+              "tags": ["Community Services"]
             }
           ]
         },
@@ -59,9 +55,7 @@
           "positions": [
             {
               "name": "Stellar Arts - Visual Art Workshop Volunteer",
-              "tags": [
-                "Community Services"
-              ]
+              "tags": ["Community Services"]
             }
           ]
         },
@@ -74,9 +68,7 @@
           "positions": [
             {
               "name": "Stellar Arts - Drama Program Volunteer",
-              "tags": [
-                "Community Services"
-              ]
+              "tags": ["Community Services"]
             }
           ]
         }
