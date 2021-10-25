@@ -87,7 +87,7 @@ model Post {
 
 model Tag {
   id        Int        @id @default(autoincrement())
-  name      String
+  name      String     @unique
   positions Position[]
 }
 
