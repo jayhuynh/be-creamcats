@@ -16,7 +16,8 @@
           "positions": [
             {
               "name": "Brisbane Relief Hub - Emergency Relief Volunteer",
-              "tags": ["Community Services"]
+              "tags": ["Community Services"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368780emergency-relief.jpg"
             }
           ]
         },
@@ -29,7 +30,8 @@
           "positions": [
             {
               "name": "Volunteers building connections with young adults with disabilities",
-              "tags": ["Community Services"]
+              "tags": ["Community Services"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172367401disability.jpg"
             }
           ]
         },
@@ -42,7 +44,8 @@
           "positions": [
             {
               "name": "Stellar Arts - Percussion Program Volunteer",
-              "tags": ["Community Services"]
+              "tags": ["Community Services"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172370073percussion.jpg"
             }
           ]
         },
@@ -55,7 +58,8 @@
           "positions": [
             {
               "name": "Stellar Arts - Visual Art Workshop Volunteer",
-              "tags": ["Community Services"]
+              "tags": ["Community Services"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172366241art.jpeg"
             }
           ]
         },
@@ -68,7 +72,8 @@
           "positions": [
             {
               "name": "Stellar Arts - Drama Program Volunteer",
-              "tags": ["Community Services"]
+              "tags": ["Community Services"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368520drama.jpg"
             }
           ]
         }
