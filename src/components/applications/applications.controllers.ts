@@ -38,54 +38,54 @@ export const getApplications = expressAsyncHandler(
 
 export const createApplication = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const schema = Joi.object({
-      userId: Joi.number().integer().required(),
-      positionId: Joi.number().integer().required(),
-      notes: Joi.string(),
-    });
-    const { error, value } = schema.validate(req.body);
-    if (error) {
-      return next(new SchemaError(error.message));
-    }
-
-    const { userId, positionId, notes } = value;
-
-    let existingApplication: Application;
     try {
-      existingApplication = await prisma.application.findUnique({
-        where: {
-          userId_positionId: {
+      const schema = Joi.object({
+        userId: Joi.number().integer().required(),
+        positionId: Joi.number().integer().required(),
+        notes: Joi.string(),
+      });
+      const { error, value } = schema.validate(req.body);
+      if (error) {
+        return next(new SchemaError(error.message));
+      }
+
+      const { userId, positionId, notes } = value;
+
+      const existingApplication: Application = await prisma.application
+        .findUnique({
+          where: {
+            userId_positionId: {
+              userId,
+              positionId,
+            },
+          },
+        })
+        .catch((e) => {
+          throw new DatabaseError(e);
+        });
+
+      if (existingApplication) {
+        throw new ConflictError(
+          "Application with the same userId and positionId already exists"
+        );
+      }
+
+      const application: Application = await prisma.application
+        .create({
+          data: {
             userId,
             positionId,
+            notes,
           },
-        },
-      });
+        })
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      return res.status(200).json(application);
     } catch (e) {
       return next(e);
     }
-    if (existingApplication) {
-      return next(
-        new ConflictError(
-          "Application with the same userId and positionId already exists"
-        )
-      );
-    }
-
-    try {
-      await prisma.application.create({
-        data: {
-          userId,
-          positionId,
-          notes,
-        },
-      });
-    } catch (e) {
-      return next(e);
-    }
-
-    return res.status(200).json({
-      message: "Application successfully added",
-    });
   }
 );
 

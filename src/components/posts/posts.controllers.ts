@@ -90,50 +90,52 @@ export const getPostsOfMe = expressAsyncHandler(
 
 export const createPost = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const schema = Joi.object({
-      title: Joi.string(),
-      thumbnail: Joi.string(),
-      content: Joi.string(),
-      userId: Joi.number().integer(),
-    });
-    const { error, value } = schema.validate(req.body);
-    if (error) {
-      return next(new SchemaError(error.message));
-    }
-
-    const { title, thumbnail, content, userId } = value;
-
-    let existingUser: User;
     try {
-      existingUser = await prisma.user.findUnique({
-        where: { id: userId },
+      const schema = Joi.object({
+        title: Joi.string(),
+        thumbnail: Joi.string(),
+        content: Joi.string(),
+        userId: Joi.number().integer(),
       });
-    } catch (e) {
-      return next(e);
-    }
-    if (!existingUser) {
-      return next(new ConflictError("User with the id does not exist"));
-    }
 
-    try {
-      await prisma.post.create({
-        data: {
-          title: title,
-          thumbnail: thumbnail,
-          content: content,
-          User: {
-            connect: {
-              id: userId,
+      const { title, thumbnail, content, userId } = await schema
+        .validateAsync(req.body)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const existingUser: User = await prisma.user
+        .findUnique({
+          where: { id: userId },
+        })
+        .catch((e) => {
+          throw new DatabaseError(e);
+        });
+
+      if (!existingUser) {
+        throw new ConflictError("User with the id does not exist");
+      }
+
+      const post: Post = await prisma.post
+        .create({
+          data: {
+            title: title,
+            thumbnail: thumbnail,
+            content: content,
+            User: {
+              connect: {
+                id: userId,
+              },
             },
           },
-        },
-      });
+        })
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      return res.status(200).json(post);
     } catch (e) {
       return next(e);
     }
-
-    return res.status(200).json({
-      message: "Sharing zone post successfully created",
-    });
   }
 );
