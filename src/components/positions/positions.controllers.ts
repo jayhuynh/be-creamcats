@@ -88,7 +88,7 @@ const getPositionsWithFilter = async (req: Request) => {
         pa.application_cnt as "applicationCount"
       FROM
         "Position" as pos
-        JOIN (
+        LEFT JOIN (
           SELECT
             pos.id as pos_id,
             COUNT(*) AS application_cnt
@@ -161,7 +161,9 @@ const getPositionsWithFilter = async (req: Request) => {
 
   if (sort === "applications") {
     sql += `
-        ORDER BY "applicationCount" ${order}
+        ORDER BY "applicationCount" ${order} ${
+      order === "asc" ? "NULL FIRST" : "NULL LAST"
+    }
       `;
   } else if (sort === "distance") {
     sql += `
@@ -199,6 +201,7 @@ const getPositionsWithFilter = async (req: Request) => {
     });
     Object.assign(position, queriedPosition);
     position.tags = position.tags.map((tag: any) => tag.name);
+    position.applicationCount = position.applicationCount ?? 0;
   }
 
   return {
