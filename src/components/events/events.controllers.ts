@@ -2,6 +2,7 @@ import { Event, Prisma, Organization } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
+import { queryAddress, QueryAddressResult } from "../../utils/maps";
 
 import { OrganizationRequest, prisma } from "../../utils";
 import {
@@ -121,7 +122,9 @@ export const createEvent = expressAsyncHandler(
     if (!existingOrganization) {
       return next(new ConflictError("Organization with the id does not exist"));
     }
+
     let createdEvent: Event;
+
     try {
       createdEvent = await prisma.event.create({
         data: {
@@ -139,7 +142,18 @@ export const createEvent = expressAsyncHandler(
         },
       });
     } catch (e) {
-      return next(e);
+      return next(new DatabaseError(e.message));
+    }
+
+    const addr: QueryAddressResult = await queryAddress(location);
+
+    if (addr) {
+      const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
+      try {
+        await prisma.$executeRaw(query);
+      } catch (e) {
+        return next(new DatabaseError(e.message));
+      }
     }
 
     return res.status(200).json({ createdEvent });
