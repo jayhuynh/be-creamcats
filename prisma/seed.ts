@@ -38,13 +38,13 @@ const genUser = async (): Promise<Prisma.UserCreateInput> => {
       create: genArray<Prisma.PostCreateInput>({
         minLen: 1,
         maxLen: 2,
-        f: genPost,
+        f: genPostCreateInput,
       }),
     },
   };
 };
 
-const genPost = (): Prisma.PostCreateInput => {
+const genPostCreateInput = (): Prisma.PostCreateInput => {
   return {
     title: faker.lorem.words(faker.datatype.number({ min: 3, max: 5 })),
     thumbnail: faker.image.city(),
@@ -68,7 +68,7 @@ const genPositionCreateInput = (
         };
       }),
     },
-    thumbnail: faker.image.city(),
+    thumbnail: position.thumbnail ?? faker.image.city(),
   };
 };
 
@@ -200,7 +200,7 @@ const genUsers = async () => {
         create: genArray<Prisma.PostCreateInput>({
           minLen: 1,
           maxLen: 2,
-          f: genPost,
+          f: genPostCreateInput,
         }),
       },
     },
