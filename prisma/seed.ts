@@ -2,8 +2,14 @@ import argon2 from "argon2";
 import faker from "faker";
 import fs from "fs";
 import { addDays } from "date-fns";
-import { Position, Prisma, User } from "@prisma/client";
-import { PrismaClient, Gender, ApplicationStatus } from ".prisma/client";
+import {
+  Position,
+  Prisma,
+  User,
+  PrismaClient,
+  Gender,
+  ApplicationStatus,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -47,90 +53,95 @@ const genPost = (): Prisma.PostCreateInput => {
   };
 };
 
+const genPositionCreateInput = (
+  position: any
+): Prisma.PositionCreateWithoutEventInput => {
+  return {
+    name: position.name,
+    desc: faker.lorem.paragraph(),
+    requirements: faker.lorem.paragraph(),
+    gender: faker.random.arrayElement([Gender.MALE, Gender.FEMALE, undefined]),
+    tags: {
+      connect: position.tags.map((tagname: string) => {
+        return {
+          name: tagname,
+        };
+      }),
+    },
+    thumbnail: faker.image.city(),
+  };
+};
+
+const genEventCreateInput = (event: any): Prisma.EventCreateInput => {
+  const startTime = faker.random.arrayElement([
+    faker.date.past(),
+    faker.date.future(),
+  ]);
+  const endTime = addDays(startTime, faker.datatype.number(3));
+
+  const eventCreateInput: Prisma.EventCreateInput = {
+    name: `${event.name}`,
+    desc: faker.lorem.paragraph(),
+    location: event.location,
+    startTime: startTime,
+    endTime: endTime,
+    gallery: Array(3).fill(faker.image.city),
+    positions: {
+      create: event.positions.map((position: any) =>
+        genPositionCreateInput(position)
+      ),
+    },
+  };
+  return eventCreateInput;
+};
+
+const genOrganizationCreateInput = async (
+  organization: any
+): Promise<Prisma.OrganizationCreateInput> => {
+  const name = organization.name;
+  const email =
+    "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
+
+  const password =
+    email === "contact@thesalvationarmyaustralia.com"
+      ? "123456"
+      : faker.internet.password();
+
+  return {
+    name: name,
+    email: email,
+    password: await argon2.hash(password),
+    desc: faker.lorem.paragraph(),
+    addr: organization.events[0].location,
+    phone: faker.phone.phoneNumber(),
+    events: {
+      create: organization.events.map((event: any) =>
+        genEventCreateInput(event)
+      ),
+    },
+    profilePic: faker.image.avatar(),
+  };
+};
+
 const genOrganizations = async () => {
   const data = JSON.parse(
     fs.readFileSync("prisma/seed-data/data.json", "utf8")
   );
 
-  const genPosition = (position: any) => {
-    return {
-      name: position.name,
-      desc: faker.lorem.paragraph(),
-      requirements: faker.lorem.paragraph(),
-      gender: faker.random.arrayElement([
-        Gender.MALE,
-        Gender.FEMALE,
-        undefined,
-      ]),
-      tags: {
-        create: position.tags.map((tag: any) => {
-          return {
-            name: tag,
-          };
-        }),
-      },
-      thumbnail: faker.image.city(),
-    };
-  };
-
-  const genEvent = (event: any) => {
-    const events = [];
-    const n = faker.datatype.number({ min: 5, max: 10 });
-    for (let i = 0; i < n; i++) {
-      const startTime = faker.random.arrayElement([
-        faker.date.past(),
-        faker.date.future(),
-      ]);
-      const endTime = addDays(startTime, faker.datatype.number(3));
-
-      events.push({
-        name: `${event.name} ${i}`,
-        desc: faker.lorem.paragraph(),
-        location: event.location,
-        startTime: startTime,
-        endTime: endTime,
-        gallery: Array(3).fill(faker.image.city),
-        positions: {
-          create: event.positions.map((position: any) => genPosition(position)),
-        },
-      });
-    }
-    return events;
-  };
-
-  const genOrganization = async (organization: any) => {
-    const email =
-      "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
-    let password: string;
-    if (email === "contact@thesalvationarmyaustralia.com") {
-      password = "123456";
-    } else {
-      password = faker.internet.password();
-    }
-    return {
-      name: organization.name,
-      email: email,
-      password: await argon2.hash(password),
-      desc: faker.lorem.paragraph(),
-      addr: organization.events[0].location,
-      phone: faker.phone.phoneNumber(),
-      events: {
-        create: [].concat(
-          ...organization.events.map((event: any) => genEvent(event))
-        ),
-      },
-      profilePic: faker.image.avatar(),
-    };
-  };
-
   for (const { organization } of data) {
+    console.log(`Organization: ${organization.name}`);
+    const organizationCreateInput: Prisma.OrganizationCreateInput =
+      await genOrganizationCreateInput(organization);
     await prisma.organization.create({
-      data: await genOrganization(organization),
+      data: organizationCreateInput,
     });
   }
 };
 
-const genApplication = async (users: User[], positions: Position[]) => {
+const genApplicationCreateInput = async (
+  users: User[],
+  positions: Position[]
+): Promise<Prisma.ApplicationCreateInput> => {
   const user = faker.random.arrayElement(users);
   const position = faker.random.arrayElement(positions);
 
@@ -146,8 +157,12 @@ const genApplication = async (users: User[], positions: Position[]) => {
   if (application) return null;
 
   return {
-    userId: user.id,
-    positionId: position.id,
+    User: {
+      connect: { id: user.id },
+    },
+    Position: {
+      connect: { id: position.id },
+    },
     notes: faker.lorem.sentence(),
     timeCreated: faker.date.past(),
     status: faker.random.arrayElement(Object.values(ApplicationStatus)),
@@ -160,6 +175,7 @@ const genTags = async () => {
   );
   await prisma.tag.createMany({
     data: tags.map((tag: String) => {
+      console.log(`Tag: ${tag}`);
       return {
         name: tag,
       };
@@ -192,11 +208,12 @@ const genUsers = async () => {
 };
 
 const genApplications = async () => {
+  console.log("Generating applications...");
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
 
   for (let i = 0; i < 500; i++) {
-    const application = await genApplication(users, positions);
+    const application = await genApplicationCreateInput(users, positions);
     if (!application) continue;
 
     try {
@@ -210,6 +227,7 @@ const genApplications = async () => {
 };
 
 const genGeography = async () => {
+  console.log("Generating lat/lng...");
   const addresses = JSON.parse(
     fs.readFileSync("prisma/seed-data/addresses.json", "utf8")
   );
@@ -221,10 +239,11 @@ const genGeography = async () => {
 };
 
 const main = async () => {
+  faker.seed(3801);
   await genUsers();
+  await genTags();
   await genOrganizations();
   await genApplications();
-  await genTags();
   await genGeography();
   console.log("Seeding finished");
 };
