@@ -1,0 +1,39 @@
+[
+  {
+    "events": {
+      "name": "Community Visitor - Alderley",
+      "gallery": [
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136445936gal1.jpg",
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446320gal2.jpg",
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446420gal3.jpg",
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446571gal4.jpg",
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446678gal5.jpg"
+      ],
+      "desc": "The Group61 Community Visitor program aims to enrich the quality of life of isolated older people living in their own homes who may be socially isolated or lonely - whether for social or cultural reasons or due to disability.",
+      "location": "6 Pegg Road, ROCKLEA QLD 4106",
+      "positions": [
+        {
+          "name": "Teaching Basic Computer Skills and Walks",
+          "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136790492thumbnail1.jpg",
+          "firstParagraph": "We are looking for friendly people who are looking to make a difference in the lives of our community’s seniors just by spending an hour per week or fortnight visiting and being a social friend to individuals living in their own homes in Alderley. In this particular role we have a lady who enjoys walks and would like to learn some computer skills.",
+          "secondParagraph": "In the role of Community Visitor, you will assist in ensuring older people in their own homes remain actively engaged and inspired every day. Quality time shared can include chatting, playing cards or board games, work on a hobby together, or discuss the local news. You might take a walk, grab a coffee, visit bingo, or do some gardening together.",
+          "list": [
+            "Supply and pay for any security checks required for the position",
+            "Great education opportunities",
+            "Free Flu Vaccinations",
+            "Exclusive shopping discounts",
+            "Access to online and face-to-face wellness advisors",
+            "Invitations to social events",
+            "Being part of a team that really is making a difference in the lives of lonely and isolated seniors living in your local community."
+          ],
+          "tags": [
+            "Community Services",
+            "Seniors",
+            "Aged Care",
+            "Disability Services"
+          ]
+        }
+      ]
+    }
+  }
+]
