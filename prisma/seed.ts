@@ -45,7 +45,7 @@ const genPostCreateInput = (post: any): Prisma.PostCreateInput => {
     timeCreated: faker.date.past(),
     User: {
       connect: {
-        id: faker.datatype.number({ min: 1, max: 30 }),
+        id: post.userId,
       },
     },
   };
@@ -200,7 +200,7 @@ const genApplications = async () => {
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
 
-  for (let i = 0; i < 500; i++) {
+  for (let i = 0; i < 120; i++) {
     const application = await genApplicationCreateInput(users, positions);
     if (!application) continue;
 
