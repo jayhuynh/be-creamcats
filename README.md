@@ -62,7 +62,7 @@ This will run the prisma stdio (database viewer) in your browser on port `5555`.
 
 ```json
 {
-  "email": "contact@thesalvationarmyaustralia.com",
+  "email": "contact@wesleymission.qld.au",
   "password": "123456",
   "type": "organization"
 }

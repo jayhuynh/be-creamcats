@@ -98,13 +98,9 @@ const genOrganizationCreateInput = async (
 ): Promise<Prisma.OrganizationCreateInput> => {
   const name = organization.name;
   const email =
+    organization.email ??
     "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
-
-  const password =
-    email === "contact@thesalvationarmyaustralia.com"
-      ? "123456"
-      : faker.internet.password();
-
+  const password = organization.password ?? faker.internet.password;
   return {
     name: name,
     email: email,
@@ -188,11 +184,12 @@ const genUsers = async () => {
   await prisma.user.create({
     data: {
       email: "netcat@uq.edu.au",
-      fullname: "Joel Fenwick",
+      fullname: "John Fenwick",
       password: await argon2.hash("123456"),
       gender: "MALE",
-      age: 50,
-      profilePic: faker.image.avatar(),
+      age: 25,
+      profilePic:
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635164528005avatar-1.jpg",
     },
   });
 };
