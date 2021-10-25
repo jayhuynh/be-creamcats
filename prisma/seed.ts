@@ -34,22 +34,20 @@ const genUser = async (): Promise<Prisma.UserCreateInput> => {
     gender: faker.random.arrayElement([Gender.MALE, Gender.FEMALE]),
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
-    posts: {
-      create: genArray<Prisma.PostCreateInput>({
-        minLen: 1,
-        maxLen: 2,
-        f: genPostCreateInput,
-      }),
-    },
   };
 };
 
-const genPostCreateInput = (): Prisma.PostCreateInput => {
+const genPostCreateInput = (post: any): Prisma.PostCreateInput => {
   return {
-    title: faker.lorem.words(faker.datatype.number({ min: 3, max: 5 })),
-    thumbnail: faker.image.city(),
-    content: faker.lorem.paragraph(),
+    title: post.title,
+    thumbnail: post.thumbnail,
+    content: post.content,
     timeCreated: faker.date.past(),
+    User: {
+      connect: {
+        id: faker.datatype.number({ min: 1, max: 30 }),
+      },
+    },
   };
 };
 
@@ -85,7 +83,7 @@ const genEventCreateInput = (event: any): Prisma.EventCreateInput => {
     location: event.location,
     startTime: startTime,
     endTime: endTime,
-    gallery: Array(3).fill(faker.image.city),
+    gallery: event.gallery ?? Array(3).fill(faker.image.city),
     positions: {
       create: event.positions.map((position: any) =>
         genPositionCreateInput(position)
@@ -111,7 +109,7 @@ const genOrganizationCreateInput = async (
     name: name,
     email: email,
     password: await argon2.hash(password),
-    desc: faker.lorem.paragraph(),
+    desc: organization.desc ?? faker.lorem.paragraph(),
     addr: organization.events[0].location,
     phone: faker.phone.phoneNumber(),
     events: {
@@ -119,14 +117,13 @@ const genOrganizationCreateInput = async (
         genEventCreateInput(event)
       ),
     },
-    profilePic: faker.image.avatar(),
+    profilePic: organization.profilePic ?? faker.image.avatar(),
   };
 };
 
-const genOrganizations = async () => {
-  const data = JSON.parse(
-    fs.readFileSync("prisma/seed-data/data.json", "utf8")
-  );
+const genOrganizations = async (filepath: string) => {
+  const data = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  console.log(`Parsed ${filepath} successfully!`);
 
   for (const { organization } of data) {
     console.log(`Organization: ${organization.name}`);
@@ -196,13 +193,6 @@ const genUsers = async () => {
       gender: "MALE",
       age: 50,
       profilePic: faker.image.avatar(),
-      posts: {
-        create: genArray<Prisma.PostCreateInput>({
-          minLen: 1,
-          maxLen: 2,
-          f: genPostCreateInput,
-        }),
-      },
     },
   });
 };
@@ -228,9 +218,9 @@ const genApplications = async () => {
 
 const genGeography = async () => {
   console.log("Generating lat/lng...");
-  const addresses = JSON.parse(
-    fs.readFileSync("prisma/seed-data/addresses.json", "utf8")
-  );
+  const filepath = "prisma/seed-data/addresses.json";
+  const addresses = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  console.log(`Parsed ${filepath} successfully`);
 
   for (const addr of addresses) {
     const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
@@ -238,13 +228,26 @@ const genGeography = async () => {
   }
 };
 
+const genPosts = async () => {
+  console.log("Generating posts...");
+  const filepath = "prisma/seed-data/demo/posts.json";
+  const posts = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  for (const { post } of posts) {
+    await prisma.post.create({
+      data: genPostCreateInput(post),
+    });
+  }
+};
+
 const main = async () => {
   faker.seed(3801);
   await genUsers();
   await genTags();
-  await genOrganizations();
+  await genOrganizations("prisma/seed-data/data.json");
+  await genOrganizations("prisma/seed-data/demo/organization.json");
   await genApplications();
   await genGeography();
+  await genPosts();
   console.log("Seeding finished");
 };
 
