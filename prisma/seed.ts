@@ -73,6 +73,8 @@ const genPositionCreateInput = (
 
 const genEventCreateInput = (event: any): Prisma.EventCreateInput => {
   const startTime = faker.random.arrayElement([
+    faker.date.between("2021-11-01", "2021-12-31"),
+    faker.date.between("2021-11-01", "2021-12-31"),
     faker.date.past(),
     faker.date.future(),
   ]);
