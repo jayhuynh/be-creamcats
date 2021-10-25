@@ -1,6 +1,7 @@
 import argon2 from "argon2";
 import faker from "faker";
 import fs from "fs";
+import fetch from "node-fetch";
 import { addDays } from "date-fns";
 import {
   Position,
@@ -214,13 +215,48 @@ const genApplications = async () => {
   }
 };
 
+interface QueryAddressResult {
+  address: string;
+  lng: number;
+  lat: number;
+}
+
+const queryAddress = async (
+  address: string
+): Promise<QueryAddressResult | null> => {
+  const key = process.env.GEO_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${key}`;
+  const response = await fetch(url);
+  const json = await response.json();
+  if (json.status !== "OK") {
+    return null;
+  }
+  const lng = json.results[0].geometry.location.lng;
+  const lat = json.results[0].geometry.location.lat;
+  return {
+    address: address,
+    lng: lng,
+    lat: lat,
+  };
+};
+
 const genGeography = async () => {
   console.log("Generating lat/lng...");
-  const filepath = "prisma/seed-data/addresses.json";
-  const addresses = JSON.parse(fs.readFileSync(filepath, "utf8"));
-  console.log(`Parsed ${filepath} successfully`);
+  // const filepath = "prisma/seed-data/addresses.json";
+  // const addresses = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  // console.log(`Parsed ${filepath} successfully`);
 
-  for (const addr of addresses) {
+  const events = await prisma.event.findMany();
+  for (const event of events) {
+    console.log(`Event: ${event.name}`);
+    const addr: QueryAddressResult = await queryAddress(event.location);
+    if (!addr) {
+      console.log(`Address: ${event.location} cannot be found!`);
+      continue;
+    }
+    console.log(
+      `Address: ${addr.address} - lat: ${addr.lat} - lng: ${addr.lng}`
+    );
     const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
     await prisma.$executeRaw(query);
   }
