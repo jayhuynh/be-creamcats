@@ -1,7 +1,7 @@
 [
   {
     "events": {
-      "name": "Community Visitor - Alderley",
+      "name": "Ducks in the Spring 2021",
       "gallery": [
         "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136445936gal1.jpg",
         "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446320gal2.jpg",
@@ -9,30 +9,28 @@
         "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446571gal4.jpg",
         "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136446678gal5.jpg"
       ],
-      "desc": "The Group61 Community Visitor program aims to enrich the quality of life of isolated older people living in their own homes who may be socially isolated or lonely - whether for social or cultural reasons or due to disability.",
+      "desc": "Posting pictures of ducks and other wildlife around UQ in Spring 2021. UQ's campuses are rich in native flora which attracts an abundance of wildlife. This event focuses on caring for injured wildlife on campus.",
       "location": "105 Springwood Road, SPRINGWOOD QLD 4127",
       "startAt": "10/11/2021",
       "endAt": "20/11/2021",
       "positions": [
         {
-          "name": "Teaching Basic Computer Skills and Walks",
+          "name": "Photographers for their Ducks in the Spring 2021 event",
           "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635136790492thumbnail1.jpg",
-          "requirement": "This is requirement",
-          "firstParagraph": "We are looking for friendly people who are looking to make a difference in the lives of our community’s seniors just by spending an hour per week or fortnight visiting and being a social friend to individuals living in their own homes in Alderley. In this particular role we have a lady who enjoys walks and would like to learn some computer skills.",
-          "secondParagraph": "In the role of Community Visitor, you will assist in ensuring older people in their own homes remain actively engaged and inspired every day. Quality time shared can include chatting, playing cards or board games, work on a hobby together, or discuss the local news. You might take a walk, grab a coffee, visit bingo, or do some gardening together.",
+          "requirement": "Do not attempt to handle animals that may cause serious injury or disease, such as bats or snakes. Pick up the animal with a towel or blanket if it is safe to do so and be careful to avoid being scratched or bitten.",
+          "firstParagraph": "Capture the beauty of iconic Australia, as you raise awareness of our conservation and community efforts through your lens. Help us to raise awareness of our community and conservation efforts through the power of your lens, with stunning photo opportunities.",
+          "secondParagraph": "Capture the beauty of iconic Australia, as you raise awareness of our lion conservation efforts through your lens. Assess whether the animal needs rescuing. Young birds found on the ground are often still being cared for by their parents.  Unless it is in immediate danger or sick or injured, leave it alone.",
           "list": [
-            "Supply and pay for any security checks required for the position",
-            "Great education opportunities",
-            "Free Flu Vaccinations",
-            "Exclusive shopping discounts",
-            "Access to online and face-to-face wellness advisors",
-            "Invitations to social events",
-            "Being part of a team that really is making a difference in the lives of lonely and isolated seniors living in your local community."
+            "Do not attempt to handle animals that may cause serious injury or disease, such as bats or snakes.",
+            "Pick up the animal with a towel or blanket if it is safe to do so and be careful to avoid being scratched or bitten.",
+            "Place the animal in a secure ventilated box lined with a towel or blanket.  All animals suffer from shock and require a dark, quiet environment.",
+            "Do not offer food or water as feeding an animal in shock can be fatal.",
+            "In the first instance, contact PF Assist ph 3365 2222, to report injured wildlife on campus.  There are staff who can co-ordinate and complete rescues on site during business hours. If on the Gatton Campus, take the animal to the UQ VETS Small Animal Hospital.",
+            "Otherwise, take the animal to the nearest veterinarian or contact the RSPCA or local wildlife carer organisation. "
           ],
           "tags": [
-            "Health",
-            "Seniors",
-            "Aged Care"
+            "Animal",
+            "Community Services"
           ]
         }
       ]
