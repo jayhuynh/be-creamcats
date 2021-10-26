@@ -46,7 +46,7 @@ const getPositionsWithFilter = async (req: Request) => {
     sort: Joi.string().valid("applications", "distance", "timecreated"),
     order: Joi.string().valid("asc", "desc"),
     gender: Joi.string().valid("male", "female"),
-    tags: Joi.array(),
+    tags: Joi.alternatives().try(Joi.array(), Joi.string()),
     dayfrom: Joi.date(),
     dayto: Joi.date(),
     limit: Joi.number().integer(),
@@ -66,7 +66,7 @@ const getPositionsWithFilter = async (req: Request) => {
   const sort = query.sort;
   const order = query.order;
   const gender = query.gender?.toUpperCase();
-  const tags = query.tags;
+  const tags = typeof query.tags == "string" ? [query.tags] : query.tags;
   const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
   const dayfrom = parseDay(query.dayfrom);
   const dayto = parseDay(query.dayto);
@@ -162,7 +162,7 @@ const getPositionsWithFilter = async (req: Request) => {
   if (sort === "applications") {
     sql += `
         ORDER BY "applicationCount" ${order} ${
-      order === "asc" ? "NULL FIRST" : "NULL LAST"
+      order === "asc" ? "NULLS FIRST" : "NULLS LAST"
     }
       `;
   } else if (sort === "distance") {
@@ -174,6 +174,8 @@ const getPositionsWithFilter = async (req: Request) => {
         ORDER BY pos."timeCreated" ${order}
       `;
   }
+
+  // console.log(`SQL: ${sql}`);
 
   const countSql = `SELECT COUNT(*) FROM ( ${sql} ) as ct;`;
 
@@ -248,6 +250,7 @@ export const createPosition = expressAsyncHandler(
       eventId: Joi.number().integer(),
       tags: Joi.array().items(Joi.string()),
     });
+
     const { error, value } = schema.validate(req.body);
     if (error) {
       return next(new SchemaError(error.message));
