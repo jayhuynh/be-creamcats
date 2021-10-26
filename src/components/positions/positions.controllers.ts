@@ -175,8 +175,6 @@ const getPositionsWithFilter = async (req: Request) => {
       `;
   }
 
-  // console.log(`SQL: ${sql}`);
-
   const countSql = `SELECT COUNT(*) FROM ( ${sql} ) as ct;`;
 
   sql += limit ? `LIMIT ${limit}` : "";
