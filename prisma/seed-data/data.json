@@ -215,7 +215,7 @@
           "positions": [
             {
               "name": "Help someone in care today - Mature Age Female Community Visitor volunteer needed at Springwood",
-              "thumbnail":  "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170957791Aged-or-Disability-Care-Courses-Brisbane-1.jpeg",
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170957791Aged-or-Disability-Care-Courses-Brisbane-1.jpeg",
               "tags": ["Community Services", "Seniors", "Aged Care"]
             },
             {
@@ -313,7 +313,7 @@
             },
             {
               "name": "Volunteer Senior Leader (Coordinator)",
-              "thumbnail":  "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170958224hospice-1788467_1280.jpeg",
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170958224hospice-1788467_1280.jpeg",
               "tags": ["Community Services", "Young People", "Seniors"]
             }
           ]
@@ -692,7 +692,7 @@
               "name": "Volunteer Program Assistant",
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635140200032pos_disability.jpg",
 
-              "tags": ["Animal Welfare", "Disability Services"]
+              "tags": ["Animal", "Disability Services"]
             }
           ]
         }
@@ -854,7 +854,7 @@
             },
             {
               "name": "Social outings",
-              "thumbnail":  "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170958486slide-cooking816x400.jpeg",
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170958486slide-cooking816x400.jpeg",
               "tags": ["Community Services"]
             }
           ]
@@ -932,7 +932,7 @@
           "positions": [
             {
               "name": "BBQ fundraiser",
-              "thumbnail":  "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170957791Aged-or-Disability-Care-Courses-Brisbane-1.jpeg",
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635170957791Aged-or-Disability-Care-Courses-Brisbane-1.jpeg",
 
               "tags": ["Community Services"]
             }

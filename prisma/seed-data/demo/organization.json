@@ -1,28 +1,28 @@
 [
   {
     "organization": {
-      "name": "Wesley Mission Queensland",
-      "email": "contact@wesleymission.qld.au",
+      "name": "UQ Duck Lovers",
+      "email": "contact@uqducks.au",
       "password": "123456",
       "profilePic": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961935OrgLogo.jpg",
-      "desc": "Wesley Mission Queensland is a leading not-for-profit organisation that has been supporting Queenslanders for over 100 years. Offering community support, aged care, child care, and retirement living, the work of Wesley Mission Queensland reaches throughout Queensland encouraging social inclusion and strengthening communities.",
+      "desc": "An organisation for people who love ducks",
       "events": [
         {
-          "name": "ORCA Project",
+          "name": "Writing About Ducks Competition",
           "gallery": [
             "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135960548event1.jpg"
           ],
           "location": "6 Pegg Road, ROCKLEA QLD 4106",
           "positions": [
             {
-              "name": "Brisbane Relief Hub - Emergency Relief Volunteer",
-              "tags": ["Community Services"],
+              "name": "Marketing Assistant",
+              "tags": ["Animal"],
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368780emergency-relief.jpg"
             }
           ]
         },
         {
-          "name": "YOUTH Project",
+          "name": "Workshop: Information about Ducks",
           "gallery": [
             "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961318event2.jpeg"
           ],
@@ -30,13 +30,13 @@
           "positions": [
             {
               "name": "Volunteers building connections with young adults with disabilities",
-              "tags": ["Community Services"],
+              "tags": ["Animal"],
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172367401disability.jpg"
             }
           ]
         },
         {
-          "name": "Stellar Program",
+          "name": "Ducks in the Spring 2020",
           "gallery": [
             "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961537event3.jpg"
           ],
@@ -44,13 +44,13 @@
           "positions": [
             {
               "name": "Stellar Arts - Percussion Program Volunteer",
-              "tags": ["Community Services"],
+              "tags": ["Animal"],
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172370073percussion.jpg"
             }
           ]
         },
         {
-          "name": "Art Workshop",
+          "name": "Exhibition: A history of Ducks in Queensland",
           "gallery": [
             "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961693event4.jpg"
           ],
@@ -58,13 +58,13 @@
           "positions": [
             {
               "name": "Stellar Arts - Visual Art Workshop Volunteer",
-              "tags": ["Community Services"],
+              "tags": ["Animal"],
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/163517095674534059878822_b7ac454db1_b.jpeg"
             }
           ]
         },
         {
-          "name": "Drama Program",
+          "name": "Duck Photography Competition",
           "gallery": [
             "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961799event5.jpg"
           ],
@@ -72,7 +72,7 @@
           "positions": [
             {
               "name": "Stellar Arts - Drama Program Volunteer",
-              "tags": ["Community Services"],
+              "tags": ["Animal"],
               "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368520drama.jpg"
             }
           ]
