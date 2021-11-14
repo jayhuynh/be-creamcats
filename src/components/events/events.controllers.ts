@@ -196,11 +196,11 @@ export const updateEventById = expressAsyncHandler(
       const updatedEvent: Event = await prisma.event.update({
         where: { id: eventId },
         data: {
-          name: name ? name : undefined,
-          location: location ? location : undefined,
-          desc: desc ? desc : undefined,
-          startTime: starttime ? starttime : undefined,
-          endTime: endtime ? endtime : undefined,
+          name: name ?? undefined,
+          location: location ?? undefined,
+          desc: desc ?? undefined,
+          startTime: starttime ?? undefined,
+          endTime: endtime ?? undefined,
         },
       });
 
