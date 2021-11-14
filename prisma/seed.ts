@@ -1,9 +1,16 @@
 import argon2 from "argon2";
 import faker from "faker";
 import fs from "fs";
+import fetch from "node-fetch";
 import { addDays } from "date-fns";
-import { Position, Prisma, User } from "@prisma/client";
-import { PrismaClient, Gender, ApplicationStatus } from ".prisma/client";
+import {
+  Position,
+  Prisma,
+  User,
+  PrismaClient,
+  Gender,
+  ApplicationStatus,
+} from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -28,108 +35,110 @@ const genUser = async (): Promise<Prisma.UserCreateInput> => {
     gender: faker.random.arrayElement([Gender.MALE, Gender.FEMALE]),
     age: faker.datatype.number({ min: 18, max: 35 }),
     profilePic: faker.image.avatar(),
-    posts: {
-      create: genArray<Prisma.PostCreateInput>({
-        minLen: 1,
-        maxLen: 2,
-        f: genPost,
-      }),
+  };
+};
+
+const genPostCreateInput = (post: any): Prisma.PostCreateInput => {
+  return {
+    title: post.title,
+    thumbnail: post.thumbnail,
+    content: post.content,
+    timeCreated: faker.date.past(),
+    User: {
+      connect: {
+        id: post.userId,
+      },
     },
   };
 };
 
-const genPost = (): Prisma.PostCreateInput => {
+const genPositionCreateInput = (
+  position: any
+): Prisma.PositionCreateWithoutEventInput => {
   return {
-    title: faker.lorem.words(faker.datatype.number({ min: 3, max: 5 })),
-    thumbnail: faker.image.city(),
-    content: faker.lorem.paragraph(),
+    name: position.name,
+    desc: faker.lorem.paragraph(),
+    requirements: faker.lorem.paragraph(),
+    gender: faker.random.arrayElement([Gender.MALE, Gender.FEMALE, undefined]),
+    tags: {
+      connect: position.tags.map((tagname: string) => {
+        return {
+          name: tagname,
+        };
+      }),
+    },
+    thumbnail: position.thumbnail ?? faker.image.city(),
   };
 };
 
-const genOrganizations = async () => {
-  const data = JSON.parse(
-    fs.readFileSync("prisma/seed-data/data.json", "utf8")
-  );
+const genEventCreateInput = (event: any): Prisma.EventCreateInput => {
+  const startTime = faker.random.arrayElement([
+    faker.date.between("2021-11-01", "2021-12-31"),
+    faker.date.between("2021-11-01", "2021-12-31"),
+    faker.date.past(),
+    faker.date.future(),
+  ]);
+  const endTime = addDays(startTime, faker.datatype.number(3));
 
-  const genPosition = (position: any) => {
-    return {
-      name: position.name,
-      desc: faker.lorem.paragraph(),
-      requirements: faker.lorem.paragraph(),
-      gender: faker.random.arrayElement([
-        Gender.MALE,
-        Gender.FEMALE,
-        undefined,
-      ]),
-      tags: {
-        create: position.tags.map((tag: any) => {
-          return {
-            name: tag,
-          };
-        }),
-      },
-      thumbnail: faker.image.city(),
-    };
+  const eventCreateInput: Prisma.EventCreateInput = {
+    name: `${event.name}`,
+    desc: faker.lorem.paragraph(),
+    location: event.location,
+    startTime: startTime,
+    endTime: endTime,
+    gallery: event.gallery ?? Array(3).fill(faker.image.city),
+    positions: {
+      create: event.positions.map((position: any) =>
+        genPositionCreateInput(position)
+      ),
+    },
   };
+  return eventCreateInput;
+};
 
-  const genEvent = (event: any) => {
-    const events = [];
-    const n = faker.datatype.number({ min: 5, max: 10 });
-    for (let i = 0; i < n; i++) {
-      const startTime = faker.random.arrayElement([
-        faker.date.past(),
-        faker.date.future(),
-      ]);
-      const endTime = addDays(startTime, faker.datatype.number(3));
+const genOrganizationCreateInput = async (
+  organization: any
+): Promise<Prisma.OrganizationCreateInput> => {
+  const name = organization.name;
+  const email =
+    organization.email ??
+    "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
+  const password: string = organization.password ?? faker.internet.password();
 
-      events.push({
-        name: `${event.name} ${i}`,
-        desc: faker.lorem.paragraph(),
-        location: event.location,
-        startTime: startTime,
-        endTime: endTime,
-        gallery: Array(3).fill(faker.image.city),
-        positions: {
-          create: event.positions.map((position: any) => genPosition(position)),
-        },
-      });
-    }
-    return events;
+  return {
+    name: name,
+    email: email,
+    password: await argon2.hash(password),
+    desc: organization.desc ?? faker.lorem.paragraph(),
+    addr: organization.events[0].location,
+    phone: faker.phone.phoneNumber(),
+    events: {
+      create: organization.events.map((event: any) =>
+        genEventCreateInput(event)
+      ),
+    },
+    profilePic: organization.profilePic ?? faker.image.avatar(),
   };
+};
 
-  const genOrganization = async (organization: any) => {
-    const email =
-      "contact@" + organization.name.split(" ").join("").toLowerCase() + ".com";
-    let password: string;
-    if (email === "contact@thesalvationarmyaustralia.com") {
-      password = "123456";
-    } else {
-      password = faker.internet.password();
-    }
-    return {
-      name: organization.name,
-      email: email,
-      password: await argon2.hash(password),
-      desc: faker.lorem.paragraph(),
-      addr: organization.events[0].location,
-      phone: faker.phone.phoneNumber(),
-      events: {
-        create: [].concat(
-          ...organization.events.map((event: any) => genEvent(event))
-        ),
-      },
-      profilePic: faker.image.avatar(),
-    };
-  };
+const genOrganizations = async (filepath: string) => {
+  const data = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  console.log(`Parsed ${filepath} successfully!`);
 
   for (const { organization } of data) {
+    console.log(`Organization: ${organization.name}`);
+    const organizationCreateInput: Prisma.OrganizationCreateInput =
+      await genOrganizationCreateInput(organization);
     await prisma.organization.create({
-      data: await genOrganization(organization),
+      data: organizationCreateInput,
     });
   }
 };
 
-const genApplication = async (users: User[], positions: Position[]) => {
+const genApplicationCreateInput = async (
+  users: User[],
+  positions: Position[]
+): Promise<Prisma.ApplicationCreateInput> => {
   const user = faker.random.arrayElement(users);
   const position = faker.random.arrayElement(positions);
 
@@ -145,8 +154,12 @@ const genApplication = async (users: User[], positions: Position[]) => {
   if (application) return null;
 
   return {
-    userId: user.id,
-    positionId: position.id,
+    User: {
+      connect: { id: user.id },
+    },
+    Position: {
+      connect: { id: position.id },
+    },
     notes: faker.lorem.sentence(),
     timeCreated: faker.date.past(),
     status: faker.random.arrayElement(Object.values(ApplicationStatus)),
@@ -159,6 +172,7 @@ const genTags = async () => {
   );
   await prisma.tag.createMany({
     data: tags.map((tag: String) => {
+      console.log(`Tag: ${tag}`);
       return {
         name: tag,
       };
@@ -174,28 +188,23 @@ const genUsers = async () => {
   await prisma.user.create({
     data: {
       email: "netcat@uq.edu.au",
-      fullname: "Joel Fenwick",
+      fullname: "John Fenwick",
       password: await argon2.hash("123456"),
       gender: "MALE",
-      age: 50,
-      profilePic: faker.image.avatar(),
-      posts: {
-        create: genArray<Prisma.PostCreateInput>({
-          minLen: 1,
-          maxLen: 2,
-          f: genPost,
-        }),
-      },
+      age: 25,
+      profilePic:
+        "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635164528005avatar-1.jpg",
     },
   });
 };
 
 const genApplications = async () => {
+  console.log("Generating applications...");
   const users = await prisma.user.findMany();
   const positions = await prisma.position.findMany();
 
-  for (let i = 0; i < 500; i++) {
-    const application = await genApplication(users, positions);
+  for (let i = 0; i < 120; i++) {
+    const application = await genApplicationCreateInput(users, positions);
     if (!application) continue;
 
     try {
@@ -208,23 +217,73 @@ const genApplications = async () => {
   }
 };
 
-const genGeography = async () => {
-  const addresses = JSON.parse(
-    fs.readFileSync("prisma/seed-data/addresses.json", "utf8")
-  );
+interface QueryAddressResult {
+  address: string;
+  lng: number;
+  lat: number;
+}
 
-  for (const addr of addresses) {
+const queryAddress = async (
+  address: string
+): Promise<QueryAddressResult | null> => {
+  const key = process.env.GEO_API_KEY;
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${key}`;
+  const response = await fetch(url);
+  const json = await response.json();
+  if (json.status !== "OK") {
+    return null;
+  }
+  const lng = json.results[0].geometry.location.lng;
+  const lat = json.results[0].geometry.location.lat;
+  return {
+    address: address,
+    lng: lng,
+    lat: lat,
+  };
+};
+
+const genGeography = async () => {
+  console.log("Generating lat/lng...");
+  // const filepath = "prisma/seed-data/addresses.json";
+  // const addresses = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  // console.log(`Parsed ${filepath} successfully`);
+
+  const events = await prisma.event.findMany();
+  for (const event of events) {
+    console.log(`Event: ${event.name}`);
+    const addr: QueryAddressResult = await queryAddress(event.location);
+    if (!addr) {
+      console.log(`Address: ${event.location} cannot be found!`);
+      continue;
+    }
+    console.log(
+      `Address: ${addr.address} - lat: ${addr.lat} - lng: ${addr.lng}`
+    );
     const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
     await prisma.$executeRaw(query);
   }
 };
 
+const genPosts = async () => {
+  console.log("Generating posts...");
+  const filepath = "prisma/seed-data/demo/posts.json";
+  const posts = JSON.parse(fs.readFileSync(filepath, "utf8"));
+  for (const { post } of posts) {
+    await prisma.post.create({
+      data: genPostCreateInput(post),
+    });
+  }
+};
+
 const main = async () => {
+  faker.seed(3801);
   await genUsers();
-  await genOrganizations();
-  await genApplications();
   await genTags();
+  await genOrganizations("prisma/seed-data/data.json");
+  await genOrganizations("prisma/seed-data/demo/organization.json");
+  await genApplications();
   await genGeography();
+  await genPosts();
   console.log("Seeding finished");
 };
 

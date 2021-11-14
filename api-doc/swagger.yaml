@@ -696,6 +696,43 @@ paths:
                         position:
                           type: "object"
   /positions:
+    post:
+      tags:
+      - "positions"
+      summary: "Create a new position"
+      requestBody:
+        required: true
+        content:
+          "applications/json":
+            schema:
+              type: "object"
+              properties:
+                name:
+                  type: "string"
+                desc:
+                  type: "string"
+                gender:
+                  type: "string"
+                  enum:
+                  - "male"
+                  - "female"
+                  - "other"
+                requirements:
+                  type: "string"
+                thumbnail:
+                  type: "string"
+                eventId:
+                  type: "number"
+                  format: "integer"
+                tags:
+                  type: "array"
+                  items:
+                    type: "string"
+      responses:
+        "200":
+          description: "successful"
+        "422":
+          description: "SchemaError"
     get:
       tags:
       - "positions"
@@ -844,6 +881,54 @@ paths:
                 $ref: "#/components/schemas/Position"
         "404":
           description: "NotFoundError: Position not found"
+  /posts:
+    get:
+      tags:
+      - "posts"
+      summary: "Get posts"
+      parameters:
+      - name: "sort"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          enum:
+          - "timeCreated"
+      - name: "order"
+        in: "query"
+        required: false
+        schema:
+          type: "string"
+          enum:
+          - "asc"
+          - "desc"
+      - name: "limit"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      - name: "offset"
+        in: "query"
+        required: false
+        schema:
+          type: "number"
+          format: "integer"
+      responses:
+        "200":
+          description: "successful"
+          content:
+            "application/json":
+              schema:
+                type: "object"
+                properties:
+                  total:
+                    type: "number"
+                    format: "integer"
+                  data:
+                    type: "array"
+                    items:
+                      $ref: "#/components/schemas/Post"
   /posts/me:
     get:
       tags:

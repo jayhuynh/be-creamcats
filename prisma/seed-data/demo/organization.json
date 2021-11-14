@@ -1,0 +1,83 @@
+[
+  {
+    "organization": {
+      "name": "UQ Duck Lovers",
+      "email": "contact@uqducks.au",
+      "password": "123456",
+      "profilePic": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635268968162logo.png",
+      "desc": "An organisation for people who love ducks",
+      "events": [
+        {
+          "name": "Writing About Ducks Competition",
+          "gallery": [
+            "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635269924160writing.jpg"
+          ],
+          "location": "6 Pegg Road, ROCKLEA QLD 4106",
+          "positions": [
+            {
+              "name": "Marketing Assistant",
+              "tags": ["Animal"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368780emergency-relief.jpg"
+            }
+          ]
+        },
+        {
+          "name": "Workshop: Information about Ducks",
+          "gallery": [
+            "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635269550674duck-study-caitlin-fielding.jpg"
+          ],
+          "location": "6 Pegg Road, ROCKLEA QLD 4106",
+          "positions": [
+            {
+              "name": "Workshop organizer",
+              "tags": ["Animal"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172367401disability.jpg"
+            }
+          ]
+        },
+        {
+          "name": "Ducks in the Spring 2020",
+          "gallery": [
+            "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961537event3.jpg"
+          ],
+          "location": "6 Pegg Road, ROCKLEA QLD 4106",
+          "positions": [
+            {
+              "name": "Event Host",
+              "tags": ["Animal"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172370073percussion.jpg"
+            }
+          ]
+        },
+        {
+          "name": "Exhibition: A history of Ducks in Queensland",
+          "gallery": [
+            "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635135961693event4.jpg"
+          ],
+          "location": "6 Pegg Road, ROCKLEA QLD 4106",
+          "positions": [
+            {
+              "name": "Editor",
+              "tags": ["Animal"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/163517095674534059878822_b7ac454db1_b.jpeg"
+            }
+          ]
+        },
+        {
+          "name": "Duck Photography Competition",
+          "gallery": [
+            "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635270273864duck1.jpg"
+          ],
+          "location": "6 Pegg Road, ROCKLEA QLD 4106",
+          "positions": [
+            {
+              "name": "Event Host",
+              "tags": ["Animal"],
+              "thumbnail": "https://creamcats-bucket.s3.ap-southeast-1.amazonaws.com/1635172368520drama.jpg"
+            }
+          ]
+        }
+      ]
+    }
+  }
+]

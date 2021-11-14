@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
-import fetch from "node-fetch";
-
 import {
   BadRequestError,
   ConflictError,
@@ -11,7 +9,8 @@ import {
   SchemaError,
 } from "../errors";
 import { prisma } from "../../utils";
-import { Event } from "@prisma/client";
+import { Event, Position } from "@prisma/client";
+import { queryAddress } from "../../utils/maps";
 
 export const getPositions: RequestHandler = expressAsyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -47,7 +46,7 @@ const getPositionsWithFilter = async (req: Request) => {
     sort: Joi.string().valid("applications", "distance", "timecreated"),
     order: Joi.string().valid("asc", "desc"),
     gender: Joi.string().valid("male", "female"),
-    tags: Joi.array(),
+    tags: Joi.alternatives().try(Joi.array(), Joi.string()),
     dayfrom: Joi.date(),
     dayto: Joi.date(),
     limit: Joi.number().integer(),
@@ -67,7 +66,7 @@ const getPositionsWithFilter = async (req: Request) => {
   const sort = query.sort;
   const order = query.order;
   const gender = query.gender?.toUpperCase();
-  const tags = query.tags;
+  const tags = typeof query.tags == "string" ? [query.tags] : query.tags;
   const parseDay = (s: string) => (s ? new Date(s).toDateString() : null);
   const dayfrom = parseDay(query.dayfrom);
   const dayto = parseDay(query.dayto);
@@ -89,7 +88,7 @@ const getPositionsWithFilter = async (req: Request) => {
         pa.application_cnt as "applicationCount"
       FROM
         "Position" as pos
-        JOIN (
+        LEFT JOIN (
           SELECT
             pos.id as pos_id,
             COUNT(*) AS application_cnt
@@ -162,7 +161,9 @@ const getPositionsWithFilter = async (req: Request) => {
 
   if (sort === "applications") {
     sql += `
-        ORDER BY "applicationCount" ${order}
+        ORDER BY "applicationCount" ${order} ${
+      order === "asc" ? "NULLS FIRST" : "NULLS LAST"
+    }
       `;
   } else if (sort === "distance") {
     sql += `
@@ -200,28 +201,12 @@ const getPositionsWithFilter = async (req: Request) => {
     });
     Object.assign(position, queriedPosition);
     position.tags = position.tags.map((tag: any) => tag.name);
+    position.applicationCount = position.applicationCount ?? 0;
   }
 
   return {
     total: total[0].count,
     data: data,
-  };
-};
-
-const queryAddress = async (address: string): Promise<Object | null> => {
-  const key = process.env.GEO_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${key}`;
-  const response = await fetch(url);
-  const json = await response.json();
-  if (json.status !== "OK") {
-    return null;
-  }
-  const lng = json.results[0].geometry.location.lng;
-  const lat = json.results[0].geometry.location.lat;
-  return {
-    address: address,
-    lng: lng,
-    lat: lat,
   };
 };
 
@@ -263,6 +248,7 @@ export const createPosition = expressAsyncHandler(
       eventId: Joi.number().integer(),
       tags: Joi.array().items(Joi.string()),
     });
+
     const { error, value } = schema.validate(req.body);
     if (error) {
       return next(new SchemaError(error.message));
@@ -283,24 +269,26 @@ export const createPosition = expressAsyncHandler(
       return next(new ConflictError("Event with the id does not exist"));
     }
 
-    const tagIds = tags.map(async (tagName: string) => {
-      const tag = await prisma.tag.findFirst({
-        where: {
-          name: tagName,
-        },
-      });
-      return {
-        id: tag.id,
-      };
-    });
-
+    const tagIds = await Promise.all(
+      tags.map(async (tagName: string) => {
+        const tag = await prisma.tag.findFirst({
+          where: {
+            name: tagName,
+          },
+        });
+        return {
+          id: tag.id,
+        };
+      })
+    );
+    let createdPosition: Position;
     try {
-      await prisma.position.create({
+      createdPosition = await prisma.position.create({
         data: {
           name: name,
           desc: desc,
           requirements: requirements,
-          gender: gender,
+          gender: gender.toUpperCase(),
           thumbnail: thumbnail,
           Event: {
             connect: {
@@ -316,8 +304,6 @@ export const createPosition = expressAsyncHandler(
       return next(e);
     }
 
-    return res.status(200).json({
-      message: "Position successfully created",
-    });
+    return res.status(200).json({ createdPosition });
   }
 );

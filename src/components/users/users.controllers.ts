@@ -10,6 +10,7 @@ import {
   ConflictError,
   BadRequestError,
   NotFoundError,
+  DatabaseError,
 } from "../errors";
 import Joi from "joi";
 
@@ -36,52 +37,56 @@ export const getUserProfileOfMe = expressAsyncHandler(
 
 export const updateUserProfile = expressAsyncHandler(
   async (req: AuthorizedRequest, res: Response, next: NextFunction) => {
-    const schema = Joi.object({
-      fullname: Joi.string(),
-      age: Joi.number().integer(),
-      gender: Joi.string().valid("male", "female", "other"),
-      profilePic: Joi.string(),
-    });
-    const { error, value } = schema.validate(req.body);
-    if (error) {
-      return next(new SchemaError(error.message));
-    }
-    const { fullname, age, gender, profilePic } = value;
-    const userId = req.accountId;
-
-    let existingUser: User;
     try {
-      existingUser = await prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
+      const schema = Joi.object({
+        fullname: Joi.string(),
+        age: Joi.number().integer(),
+        gender: Joi.string().valid("male", "female", "other"),
+        profilePic: Joi.string(),
       });
+
+      const { fullname, age, gender, profilePic } = await schema
+        .validateAsync(req.body)
+        .catch((e) => {
+          throw new SchemaError(e.message);
+        });
+
+      const userId = req.accountId;
+
+      const existingUser: User = await prisma.user
+        .findUnique({
+          where: {
+            id: userId,
+          },
+        })
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      if (!existingUser) {
+        return next(new ConflictError("User with the same id does not exist"));
+      }
+
+      const user: User = await prisma.user
+        .update({
+          where: {
+            id: userId,
+          },
+          data: {
+            fullname: fullname,
+            age: age,
+            gender: gender.toUpperCase(),
+            profilePic: profilePic,
+          },
+        })
+        .catch((e) => {
+          throw new DatabaseError(e.message);
+        });
+
+      return res.status(200).json(user);
     } catch (e) {
       return next(e);
     }
-    if (!existingUser) {
-      return next(new ConflictError("User with the same id does not exist"));
-    }
-
-    try {
-      await prisma.user.update({
-        where: {
-          id: userId,
-        },
-        data: {
-          fullname: fullname,
-          age: age,
-          gender: gender.toUpperCase(),
-          profilePic: profilePic,
-        },
-      });
-    } catch (e) {
-      return next(e);
-    }
-
-    return res.status(200).json({
-      message: "User Profile successfully updated",
-    });
   }
 );
 

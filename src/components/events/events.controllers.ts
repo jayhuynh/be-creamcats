@@ -2,6 +2,7 @@ import { Event, Prisma, Organization } from "@prisma/client";
 import { Request, Response, NextFunction } from "express";
 import expressAsyncHandler from "express-async-handler";
 import Joi from "joi";
+import { queryAddress, QueryAddressResult } from "../../utils/maps";
 
 import { OrganizationRequest, prisma } from "../../utils";
 import {
@@ -89,6 +90,7 @@ export const createEvent = expressAsyncHandler(
     const schema = Joi.object({
       name: Joi.string(),
       desc: Joi.string(),
+      gallery: Joi.array().items(Joi.string()),
       startTime: Joi.date(),
       endTime: Joi.date(),
       location: Joi.string(),
@@ -99,7 +101,15 @@ export const createEvent = expressAsyncHandler(
       return next(new SchemaError(error.message));
     }
 
-    const { name, desc, startTime, endTime, location, organizationId } = value;
+    const {
+      name,
+      desc,
+      gallery,
+      startTime,
+      endTime,
+      location,
+      organizationId,
+    } = value;
 
     let existingOrganization: Organization;
     try {
@@ -113,11 +123,14 @@ export const createEvent = expressAsyncHandler(
       return next(new ConflictError("Organization with the id does not exist"));
     }
 
+    let createdEvent: Event;
+
     try {
-      await prisma.event.create({
+      createdEvent = await prisma.event.create({
         data: {
           name: name,
           desc: desc,
+          gallery: gallery,
           startTime: startTime,
           endTime: endTime,
           location: location,
@@ -129,12 +142,21 @@ export const createEvent = expressAsyncHandler(
         },
       });
     } catch (e) {
-      return next(e);
+      return next(new DatabaseError(e.message));
     }
 
-    return res.status(200).json({
-      message: "Event successfully created",
-    });
+    const addr: QueryAddressResult = await queryAddress(location);
+
+    if (addr) {
+      const query = `UPDATE "Event" SET coor = ST_MakePoint(${addr.lng}, ${addr.lat}) WHERE location like '${addr.address}'`;
+      try {
+        await prisma.$executeRaw(query);
+      } catch (e) {
+        return next(new DatabaseError(e.message));
+      }
+    }
+
+    return res.status(200).json({ createdEvent });
   }
 );
 
